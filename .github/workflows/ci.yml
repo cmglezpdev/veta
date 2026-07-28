@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    # POSIX-only matrix for v1. Windows path handling (%APPDATA%, reserved
+    # stems, case-insensitive containment, .exe suffix) is implemented but
+    # deliberately not CI-verified, because execFile on a shebang script does
+    # not work there and the .cmd shim it would need cannot be exercised here.
+    #
+    # No `container:` on purpose: GitHub-hosted runners are non-root, and the
+    # write-failure tests do not fail for uid 0.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Node and Vitest strip types without checking them, so this is a
+      # separate mandatory gate rather than a side effect of the test run.
+      - run: pnpm typecheck
+
+      - run: pnpm test
