@@ -2,10 +2,13 @@
   "name": "@cmglezpdev/veta",
   "version": "0.1.0",
   "description": "Turn YouTube videos into clean, structured, AI-ready notes",
-  "main": "index.js",
   "bin": {
     "veta": "./bin/cli.js"
   },
+  "files": [
+    "bin",
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
@@ -20,13 +23,17 @@
   ],
   "author": "cmglezpdev",
   "license": "MIT",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "11.17.0",
-      "onFail": "download"
-    }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cmglezpdev/veta.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.17.0",
   "type": "module",
   "dependencies": {
     "youtube-dl-exec": "^3.1.9"
