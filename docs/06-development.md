@@ -137,6 +137,26 @@ allowBuilds:
 > `package.json`. **pnpm 11 no longer reads that key** and warns that it is
 > ignored; the setting moved to `pnpm-workspace.yaml`.
 
+### CI skips the download entirely
+
+That postinstall fetches the binary from the GitHub releases API
+**unauthenticated**. Hosted runners share egress IPs, so the call hits the
+60-requests-per-hour anonymous limit and the install fails outright — which
+is exactly what happened on macOS the first time this workflow ran, while
+ubuntu passed. A flake, not a bug in our code, and one that would recur at
+random.
+
+Both workflows therefore set `YOUTUBE_DL_SKIP_DOWNLOAD`. CI never invokes
+yt-dlp — every test reads committed fixtures — so the fix removes the network
+dependency rather than authenticating it. Passing a `GITHUB_TOKEN` would also
+have worked, and was rejected: it makes an unnecessary download more reliable
+instead of not doing it.
+
+It matters most in `release.yml`, where an anonymous rate limit on an
+unrelated binary must never be what fails a publish.
+
+### The rest of the story
+
 This fixes local development and CI. It does **not** propagate to a user
 running `pnpm add -g @cmglezpdev/veta`, and there is no package-side fix for
 that. The recommended install story is therefore to install yt-dlp
