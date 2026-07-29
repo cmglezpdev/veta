@@ -3,23 +3,7 @@
  * this is the only place in the codebase that knows yt-dlp's field names.
  */
 import { asNumber, asString, isRecord } from "../../domain/json.ts";
-
-export type Chapter = {
-  readonly title: string;
-  readonly startSec: number;
-  readonly endSec: number;
-};
-
-export type VideoMetadata = {
-  readonly id: string;
-  readonly title: string;
-  readonly durationSec: number;
-  readonly uploader: string | null;
-  readonly thumbnailUrl: string | null;
-  /** Used to build per-paragraph deep links. */
-  readonly canonicalUrl: string | null;
-  readonly chapters: readonly Chapter[];
-};
+import type { Chapter, VideoMetadata } from "../../domain/video/metadata.ts";
 
 function parseChapters(value: unknown, durationSec: number): Chapter[] {
   if (!Array.isArray(value)) return [];

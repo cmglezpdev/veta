@@ -1,4 +1,4 @@
-import type { Chapter } from "../../adapters/ytdlp/info-json.ts";
+import type { Chapter } from "../video/metadata.ts";
 import type { CaptionCue } from "./cue.ts";
 
 export type ChapteredCue = CaptionCue & {
