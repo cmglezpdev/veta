@@ -1,0 +1,407 @@
+{
+  "id": "1VqKUrxR2C8",
+  "title": "Building OpenCode with Dax Raad",
+  "thumbnail": "https://i.ytimg.com/vi/1VqKUrxR2C8/maxresdefault.jpg",
+  "description": "OpenCode is one of the fastest-growing AI developer tools around, surging in just a few months from roughly 650,000 monthly active users to nearly 8 million, and almost 1M daily active users.\n\nIn this episode of The Pragmatic Engineer Podcast, we meet Dax Raad, co-founder of OpenCode, for a discussion about the gaps in developer tooling that led him to build OpenCode, the advantages of open source, and why taste and engineering judgment matter even more as AI becomes a core part of software development.\n\nWe also cover how OpenCode turned Anthropic’s blocking of integration with Claude Code into a massive growth lever by partnering with OpenAI and other model providers, why GPU demand is becoming a bottleneck everywhere, how come AI coding tools don’t automatically mean engineering teams move faster, and also why Dax is personally skeptical about predictions for the future of engineering and work, in general.\n\nI found this conversation especially interesting because Dax displays a healthy skepticism toward the benefits of AI, even while building one of the most popular AI coding harnesses.\n\n—\n*Brought to you by our season partners:*\n• Antithesis – verify your system’s correctness without human review or traditional integration tests – and avoid bugs or outages https://antithesis.com/pragmatic\n• WorkOS – everything you need to make your app enterprise ready https://workos.com/\n• turbopuffer – a vector and full-text search engine built on object storage. It’s fast, cheap, and extremely scalable https://turbopuffer.com/pragmatic\n\n—\n*The Pragmatic Engineer deepdives relevant for this episode:*\n• How Claude Code is built https://newsletter.pragmaticengineer.com/p/how-claude-code-is-built\n• How Codex is built https://newsletter.pragmaticengineer.com/p/how-codex-is-built\n• Real-world engineering challenges: building Cursor https://newsletter.pragmaticengineer.com/p/cursor\n• The AI Engineering stack https://newsletter.pragmaticengineer.com/p/the-ai-engineering-stack\n• How Uber uses AI for development: inside look https://newsletter.pragmaticengineer.com/p/how-uber-uses-ai-for-development\n\n—\n*Where to find Dax Raad:*\n• X: https://x.com/thdxr \n• Website: https://thdxr.com\n\n—\n*In this episode, we cover:*\n00:00 Intro\n07:03 Dax’s path into tech\n09:04 Early startup experience\n13:16 Getting involved with open source\n16:13 OpenCode\n23:17 Anthropic banning OpenCode\n30:34 From terminal to GUI\n32:34 OpenCode’s business model\n36:33 Why inference is profitable\n39:11 GPU bottlenecks\n40:54 AI hype\n45:50 AI spending\n48:47 Dax’s memo\n55:41 Dax’s skepticism of predictions\n58:58 Engineering culture at OpenCode\n1:02:38 How building works at OpenCode\n1:05:36 Taste and quality\n1:11:32 Dax’s work setup\n1:12:35 The role of engineers and EMs\n1:15:50 Advice for engineers\n1:18:12 Book recommendation\n\n—\nSee the transcript and other references from the episode at https://newsletter.pragmaticengineer.com/podcast\n\n—\nProduction and marketing by https://penname.co/.",
+  "channel_id": "UCPbwhExawYrn9xxI21TFfyw",
+  "channel_url": "https://www.youtube.com/channel/UCPbwhExawYrn9xxI21TFfyw",
+  "duration": 4861,
+  "view_count": 268103,
+  "age_limit": 0,
+  "webpage_url": "https://www.youtube.com/watch?v=1VqKUrxR2C8",
+  "categories": [
+    "Entertainment"
+  ],
+  "tags": [],
+  "playable_in_embed": true,
+  "live_status": "not_live",
+  "media_type": "video",
+  "_format_sort_fields": [
+    "quality",
+    "res",
+    "fps",
+    "hdr:12",
+    "source",
+    "vcodec",
+    "channels",
+    "acodec",
+    "lang",
+    "proto"
+  ],
+  "subtitles": {},
+  "comment_count": 66,
+  "chapters": [
+    {
+      "start_time": 0,
+      "title": "Intro",
+      "end_time": 423
+    },
+    {
+      "start_time": 423,
+      "title": "Dax’s path into tech",
+      "end_time": 544
+    },
+    {
+      "start_time": 544,
+      "title": "Early startup experience",
+      "end_time": 796
+    },
+    {
+      "start_time": 796,
+      "title": "Getting involved with open source",
+      "end_time": 973
+    },
+    {
+      "start_time": 973,
+      "title": "OpenCode",
+      "end_time": 1397
+    },
+    {
+      "start_time": 1397,
+      "title": "Anthropic banning OpenCode",
+      "end_time": 1834
+    },
+    {
+      "start_time": 1834,
+      "title": "From terminal to GUI",
+      "end_time": 1954
+    },
+    {
+      "start_time": 1954,
+      "title": "OpenCode’s business model",
+      "end_time": 2193
+    },
+    {
+      "start_time": 2193,
+      "title": "Why inference is profitable",
+      "end_time": 2351
+    },
+    {
+      "start_time": 2351,
+      "title": "GPU bottlenecks",
+      "end_time": 2454
+    },
+    {
+      "start_time": 2454,
+      "title": "AI hype",
+      "end_time": 2750
+    },
+    {
+      "start_time": 2750,
+      "title": "AI spending",
+      "end_time": 2927
+    },
+    {
+      "start_time": 2927,
+      "title": "Dax’s memo",
+      "end_time": 3341
+    },
+    {
+      "start_time": 3341,
+      "title": "Dax’s skepticism of predictions",
+      "end_time": 3538
+    },
+    {
+      "start_time": 3538,
+      "title": "Engineering culture at OpenCode",
+      "end_time": 3758
+    },
+    {
+      "start_time": 3758,
+      "title": "How building works at OpenCode",
+      "end_time": 3936
+    },
+    {
+      "start_time": 3936,
+      "title": "Taste and quality",
+      "end_time": 4292
+    },
+    {
+      "start_time": 4292,
+      "title": "Dax’s work setup",
+      "end_time": 4355
+    },
+    {
+      "start_time": 4355,
+      "title": "The role of engineers and EMs",
+      "end_time": 4550
+    },
+    {
+      "start_time": 4550,
+      "title": "Advice for engineers",
+      "end_time": 4692
+    },
+    {
+      "start_time": 4692,
+      "title": "Book recommendation",
+      "end_time": 4861
+    }
+  ],
+  "like_count": 2004,
+  "channel": "The Pragmatic Engineer",
+  "channel_follower_count": 533000,
+  "uploader": "The Pragmatic Engineer",
+  "uploader_id": "@pragmaticengineer",
+  "uploader_url": "https://www.youtube.com/@pragmaticengineer",
+  "upload_date": "20260527",
+  "timestamp": 1779897963,
+  "availability": "public",
+  "webpage_url_basename": "watch",
+  "webpage_url_domain": "youtube.com",
+  "extractor": "youtube",
+  "extractor_key": "Youtube",
+  "display_id": "1VqKUrxR2C8",
+  "fulltitle": "Building OpenCode with Dax Raad",
+  "duration_string": "1:21:01",
+  "is_live": false,
+  "was_live": false,
+  "epoch": 1785279321,
+  "format": "399 - 1920x1080 (1080p)+251 - audio only (English (US) original (default), medium)",
+  "format_id": "399+251",
+  "ext": "webm",
+  "protocol": "https+https",
+  "language": "en-US",
+  "format_note": "1080p+English (US) original (default), medium",
+  "filesize_approx": 261993498,
+  "tbr": 431.15000000000003,
+  "width": 1920,
+  "height": 1080,
+  "resolution": "1920x1080",
+  "fps": 24,
+  "dynamic_range": "SDR",
+  "vcodec": "av01.0.08M.08",
+  "vbr": 293.684,
+  "aspect_ratio": 1.78,
+  "acodec": "opus",
+  "abr": 137.466,
+  "asr": 48000,
+  "audio_channels": 2,
+  "_type": "video",
+  "_version": {
+    "version": "2026.07.04",
+    "release_git_head": "997fa140840a08df3938b40da470c78049fef1f6",
+    "repository": "yt-dlp/yt-dlp"
+  },
+  "automatic_captions": {
+    "en": [
+      {
+        "ext": "json3",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=json3",
+        "name": "English",
+        "impersonate": true
+      },
+      {
+        "ext": "srv1",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv1",
+        "name": "English",
+        "impersonate": true
+      },
+      {
+        "ext": "srv2",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv2",
+        "name": "English",
+        "impersonate": true
+      },
+      {
+        "ext": "srv3",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv3",
+        "name": "English",
+        "impersonate": true
+      },
+      {
+        "ext": "ttml",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=ttml",
+        "name": "English",
+        "impersonate": true
+      },
+      {
+        "ext": "srt",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srt",
+        "name": "English",
+        "impersonate": true
+      },
+      {
+        "ext": "vtt",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=vtt",
+        "name": "English",
+        "impersonate": true
+      }
+    ],
+    "en-orig": [
+      {
+        "ext": "json3",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=json3",
+        "name": "English (Original)",
+        "impersonate": true
+      },
+      {
+        "ext": "srv1",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv1",
+        "name": "English (Original)",
+        "impersonate": true
+      },
+      {
+        "ext": "srv2",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv2",
+        "name": "English (Original)",
+        "impersonate": true
+      },
+      {
+        "ext": "srv3",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv3",
+        "name": "English (Original)",
+        "impersonate": true
+      },
+      {
+        "ext": "ttml",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=ttml",
+        "name": "English (Original)",
+        "impersonate": true
+      },
+      {
+        "ext": "srt",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srt",
+        "name": "English (Original)",
+        "impersonate": true
+      },
+      {
+        "ext": "vtt",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=vtt",
+        "name": "English (Original)",
+        "impersonate": true
+      }
+    ],
+    "es": [
+      {
+        "ext": "json3",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=json3&tlang=es",
+        "name": "Spanish",
+        "impersonate": true
+      },
+      {
+        "ext": "srv1",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv1&tlang=es",
+        "name": "Spanish",
+        "impersonate": true
+      },
+      {
+        "ext": "srv2",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv2&tlang=es",
+        "name": "Spanish",
+        "impersonate": true
+      },
+      {
+        "ext": "srv3",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv3&tlang=es",
+        "name": "Spanish",
+        "impersonate": true
+      },
+      {
+        "ext": "ttml",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=ttml&tlang=es",
+        "name": "Spanish",
+        "impersonate": true
+      },
+      {
+        "ext": "srt",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srt&tlang=es",
+        "name": "Spanish",
+        "impersonate": true
+      },
+      {
+        "ext": "vtt",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=vtt&tlang=es",
+        "name": "Spanish",
+        "impersonate": true
+      }
+    ],
+    "fr": [
+      {
+        "ext": "json3",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=json3&tlang=fr",
+        "name": "French",
+        "impersonate": true
+      },
+      {
+        "ext": "srv1",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv1&tlang=fr",
+        "name": "French",
+        "impersonate": true
+      },
+      {
+        "ext": "srv2",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv2&tlang=fr",
+        "name": "French",
+        "impersonate": true
+      },
+      {
+        "ext": "srv3",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv3&tlang=fr",
+        "name": "French",
+        "impersonate": true
+      },
+      {
+        "ext": "ttml",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=ttml&tlang=fr",
+        "name": "French",
+        "impersonate": true
+      },
+      {
+        "ext": "srt",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srt&tlang=fr",
+        "name": "French",
+        "impersonate": true
+      },
+      {
+        "ext": "vtt",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=vtt&tlang=fr",
+        "name": "French",
+        "impersonate": true
+      }
+    ],
+    "de": [
+      {
+        "ext": "json3",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=json3&tlang=de",
+        "name": "German",
+        "impersonate": true
+      },
+      {
+        "ext": "srv1",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv1&tlang=de",
+        "name": "German",
+        "impersonate": true
+      },
+      {
+        "ext": "srv2",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv2&tlang=de",
+        "name": "German",
+        "impersonate": true
+      },
+      {
+        "ext": "srv3",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srv3&tlang=de",
+        "name": "German",
+        "impersonate": true
+      },
+      {
+        "ext": "ttml",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=ttml&tlang=de",
+        "name": "German",
+        "impersonate": true
+      },
+      {
+        "ext": "srt",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=srt&tlang=de",
+        "name": "German",
+        "impersonate": true
+      },
+      {
+        "ext": "vtt",
+        "url": "https://www.youtube.com/api/timedtext?v=1VqKUrxR2C8&ei=WDNparmvG6qklu8Pv5SRuQg&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1785304520&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=D4312B16064AD9B3572C047A7602946A8BD36AD8.1F7B5DE494E8DF7640FB9F61478700E342512402&key=yt8&kind=asr&lang=en&fmt=vtt&tlang=de",
+        "name": "German",
+        "impersonate": true
+      }
+    ]
+  }
+}
