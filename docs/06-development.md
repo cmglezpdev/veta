@@ -207,6 +207,37 @@ The excuses for reaching for it are removed structurally:
 
 Those environment overrides exist *because* of this, not merely alongside it.
 
+### Tests that check the codebase itself
+
+Two suites under `src/arch/` assert structure rather than behaviour, and they
+re-run on every change:
+
+| Suite | Asserts |
+|---|---|
+| `boundary.test.ts` | No file imports from a layer it may not reach |
+| `vocabulary.test.ts` | yt-dlp's field names appear only under `src/adapters/ytdlp/` |
+
+Both exist because the rules they enforce already failed once under human
+review. `domain/transcript/chapters.ts` imported a type from
+`adapters/ytdlp/info-json.ts` — the domain reaching into an adapter — and it
+passed, because `import type` erases at runtime: nothing broke, so nothing
+flagged it. A convention that is only checked by remembering to check it is
+the one that quietly stops holding.
+
+The boundary suite covers the shipped graph only; `*.test.ts` files are
+excluded, since the calibration test legitimately drives the whole chain from
+adapter to domain end to end.
+
+### Proving a test bites
+
+A test written after the code it covers can pass without asserting anything
+real. Before trusting a new one, break the code deliberately and confirm the
+test fails — then revert. It is worth doing once per assertion that matters.
+
+Reintroducing `dDurationMs` as a cue's end, for instance, fails the full
+payload check with 2,578 clamps: the drift alarm doing exactly what it is
+there for.
+
 ## Next
 
 [Releasing](07-releasing.md) — commits, versions, publishing.

@@ -118,14 +118,23 @@ have made it unreachable from there without breaking the import rule.
 
 ## Enforcement
 
-Two tests are planned under `tests/arch/`, neither requiring a new
-dependency:
+Two tests live under `src/arch/`, neither requiring a new dependency:
 
-1. **Boundary test** — walk every file under `src/`, extract its import
-   specifiers, assert each satisfies the table above.
-2. **Vocabulary containment** — assert that wire-level names (`tStartMs`,
+1. **`boundary.test.ts`** — walks every file under `src/`, extracts its import
+   specifiers, asserts each satisfies the table above. It covers the shipped
+   graph; `*.test.ts` files are excluded, since a calibration test legitimately
+   drives the chain from adapter through domain.
+2. **`vocabulary.test.ts`** — asserts that wire-level names (`tStartMs`,
    `dDurationMs`, `automatic_captions`, `upload_date`, `tlang`, and others)
    appear **only** under `src/adapters/ytdlp/`.
+
+They sit under `src/` rather than a top-level `tests/` because `tsconfig.json`
+sets `rootDir` to `src` — anything outside it is invisible to `typecheck`, and
+an architecture test that is not itself type-checked is a poor guard.
+
+Neither is hypothetical insurance. `domain/transcript/chapters.ts` imported a
+type from `adapters/ytdlp/info-json.ts` and passed review, because `import
+type` erases at runtime and so nothing observable broke.
 
 Both read source text rather than a real module graph, so both have known
 blind spots: dynamic imports with computed specifiers, `require.resolve`,

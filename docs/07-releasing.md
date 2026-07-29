@@ -36,11 +36,30 @@ on `pnpm install` with nothing to install.
 Merge, revert, and `fixup!` subjects are exempt — git writes those itself.
 `git commit --no-verify` bypasses the check.
 
-> **The hook cannot protect a squash merge.** Squashing replaces every commit
-> message with the PR title, typed into the GitHub UI, where no local hook
-> runs. That is a second reason not to squash here: the first is that commits
-> in this repository are split by unit of work on purpose, and squashing
-> discards that. Merge or rebase.
+> **The hook cannot see a PR title.** Merging writes a commit whose subject is
+> the title typed into the GitHub UI — on the server, where no local hook runs.
+> Squashing goes further and replaces *every* message with it. That is a second
+> reason not to squash here: the first is that commits in this repository are
+> split by unit of work on purpose, and squashing discards that. Merge or
+> rebase.
+
+### The gap that closed
+
+The warning above was not hypothetical. PR #2 merged as
+`eat(transcript): turn captions into a readable, deep-linked document` — the
+leading `f` lost while typing the title. `release-please` could not classify
+it, so the largest change in the project so far contributed nothing to the
+changelog, and nothing failed to say so.
+
+The `pr-title` job in `.github/workflows/ci.yml` now runs that same title
+through **`.githooks/commit-msg` itself**, rather than restating its regex.
+One definition, two places it is enforced, no way for them to drift apart. The
+title is still editable when the check fails, which is the whole point of
+catching it there.
+
+The commit already on `main` is left as it is: rewriting it would mean a force
+push over a released tag to fix a changelog entry, which costs more than the
+entry is worth.
 
 ## What counts as breaking
 

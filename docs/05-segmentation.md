@@ -106,7 +106,8 @@ An earlier revision of the design shipped exactly that failure: a rule was
 derived analytically, fired **zero** times against real data, and the word
 cap silently did 56% of the work. It was caught by measuring, not by reading.
 
-So the bounds are asserted mechanically:
+So the bounds are asserted mechanically, in CI, against the full 81-minute
+payload — `src/domain/transcript/segment.calibration.test.ts`:
 
 | Assertion | Bound | Current | |
 |---|---|---|---|
@@ -114,9 +115,11 @@ So the bounds are asserted mechanically:
 | Median paragraph length | 60–160 words | 106 | PASS |
 | Max paragraph length | bounded | 205 | PASS |
 | Paragraphs spanning two chapters | 0 | 0 | PASS |
-| `strong-pause` + `soft-pause` share of non-chapter breaks | > 50% | 47.6% | **FAIL** |
+| `strong-pause` + `soft-pause` share of non-chapter breaks | > 50% | 47.6% | **pinned, see below** |
 
-Reproduce with `node scripts/inspect-transcript.ts`.
+`node scripts/inspect-transcript.ts` prints the distributions those
+assertions are drawn from — the percentile tables and the break histogram the
+bounds were chosen against. The script explores; the test enforces.
 
 ## The open failure
 
@@ -157,17 +160,20 @@ missing speaker boundary is the cause.
 
 ### Why the bound is not being relaxed
 
-The obvious move — restate the assertion as `> 40%` and call it "the pause
-rules are not dead code" — would turn the bound green **immediately after it
-did its job**. It flagged a real gap in the segmenter. Loosening it now would
-delete the only record of that.
+The bound is **pinned, not relaxed**. The test asserts the ratio is `>= 45%`
+*and* `< 50%`: the lower half fails on a regression, and the upper half fails
+the moment the target is genuinely reached — telling whoever gets there to
+raise the bound to 50% and delete the pin.
+
+That is deliberately different from restating the assertion as `> 40%` and
+calling it "the pause rules are not dead code". Softening the bar would turn
+the check green **immediately after it did its job** — it flagged a real gap
+in the segmenter, and loosening it would delete the only record of that.
+Skipping the check would hide the gap entirely.
 
 Equally rejected: lowering `PAUSE_SOFT_MS` so pauses win the race. That tunes
-a constant to satisfy a metric rather than to improve output.
-
-So the bound stays red, with the cause written next to it. A failing check
-whose reason is understood is worth more than a passing one whose bar was
-lowered.
+a constant to satisfy a metric rather than to improve output — and the pin's
+upper bound makes that shortcut fail loudly instead of passing quietly.
 
 ### Why the fix is deferred
 
