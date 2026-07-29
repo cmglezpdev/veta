@@ -55,3 +55,28 @@ jobs:
       - run: pnpm typecheck
 
       - run: pnpm test
+
+  # The commit-msg hook cannot see this one. Merging a PR produces a commit
+  # whose subject is the PR *title*, written by GitHub on the server, where no
+  # local hook runs — so a malformed title lands on main unchallenged. That
+  # already happened once: `eat(transcript): ...` (PR #2) lost its leading `f`
+  # and release-please silently dropped it from the changelog.
+  #
+  # The check runs the very same hook against the title rather than restating
+  # its regex, so the rule has one definition and cannot drift between the two
+  # places it is enforced.
+  pr-title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Title must be a Conventional Commit
+        env:
+          # Passed through the environment, never interpolated into the script:
+          # a PR title is attacker-controlled text.
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          printf '%s\n' "$PR_TITLE" > "$RUNNER_TEMP/pr-title"
+          .githooks/commit-msg "$RUNNER_TEMP/pr-title"
