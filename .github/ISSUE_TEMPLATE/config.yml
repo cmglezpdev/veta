@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: How veta works
+    url: https://github.com/cmglezpdev/veta/tree/main/docs
+    about: Architecture, data sources, and every measured number, with the reasoning behind each decision.
+  - name: Scope and non-goals
+    url: https://github.com/cmglezpdev/veta/blob/main/PRD.md
+    about: What veta is for, and what it deliberately does not do.

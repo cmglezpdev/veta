@@ -10,6 +10,7 @@
     "dist"
   ],
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "pretest": "pnpm run build",
