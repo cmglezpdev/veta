@@ -1,0 +1,23 @@
+# Changelog
+
+## [0.2.0](https://github.com/cmglezpdev/veta/compare/veta-v0.1.0...veta-v0.2.0) (2026-07-29)
+
+
+### Features
+
+* **cli:** add composition root skeleton with tier-5 smoke test ([ffe2c9c](https://github.com/cmglezpdev/veta/commit/ffe2c9c242f571d4d4e760893b50439c31c3807d))
+* **transcript:** group cues into chapter-aware paragraphs ([26400ac](https://github.com/cmglezpdev/veta/commit/26400ac10cf2f25a3eda5eb4a8b0b5dbc1665888))
+* **transcript:** parse yt-dlp payloads into normalized cues ([d244074](https://github.com/cmglezpdev/veta/commit/d2440745fac62d02ca037ffe280c008c7e5eda62))
+* **transcript:** render paragraphs as markdown with deep links ([f5ddc0e](https://github.com/cmglezpdev/veta/commit/f5ddc0e341377a75c30aee0c84c1610dd5bafbde))
+* **transcript:** turn captions into a readable, deep-linked document ([72a823c](https://github.com/cmglezpdev/veta/commit/72a823c9efdca3f14a91eb6fc01d139ec4998c59))
+
+
+### Documentation
+
+* document the system and what was measured ([86290b6](https://github.com/cmglezpdev/veta/commit/86290b67fb345dace6fdfef553180399d66ed221))
+* record the speaker-change finding and the calibration diagnosis ([f342c72](https://github.com/cmglezpdev/veta/commit/f342c72182f9649813b07e95c85b2f47e62b561b))
+
+
+### Code Refactoring
+
+* **domain:** move video metadata types out of the yt-dlp adapter ([49ed9bb](https://github.com/cmglezpdev/veta/commit/49ed9bbfeb24ec2c186712480ca0bb9ae0a8e963))
