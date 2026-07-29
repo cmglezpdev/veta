@@ -11,6 +11,7 @@ import { parseInfoJson } from "../src/adapters/ytdlp/info-json.ts";
 import { parseJson3 } from "../src/adapters/ytdlp/json3.ts";
 import { assignChapters } from "../src/domain/transcript/chapters.ts";
 import { isMonotonic } from "../src/domain/transcript/cue.ts";
+import { formatClock } from "../src/domain/time/clock.ts";
 import {
   PARAGRAPH_MAX_WORDS,
   type BreakReason,
@@ -29,11 +30,8 @@ console.log(`  duration   ${metadata.durationSec}s`);
 console.log(`  uploader   ${metadata.uploader ?? "-"}`);
 console.log(`  chapters   ${metadata.chapters.length}`);
 
-const asClock = (sec: number): string =>
-  `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
-
 metadata.chapters.forEach((chapter, i) => {
-  const span = `${asClock(chapter.startSec)}-${asClock(chapter.endSec)}`;
+  const span = `${formatClock(chapter.startSec)}-${formatClock(chapter.endSec)}`;
   console.log(`    ${String(i).padStart(2)}  ${span.padEnd(13)} ${chapter.title}`);
 });
 
