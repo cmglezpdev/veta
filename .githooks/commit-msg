@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# Reject commit messages that release-please cannot classify.
+#
+# This matters more than it looks: a malformed message does not fail anything.
+# release-please simply ignores it, so the change never reaches the changelog
+# and never influences the version. The failure is silent, which is why it is
+# worth catching here, while the message is still editable.
+#
+# Installed by the `prepare` script in package.json, which points
+# core.hooksPath at this directory. No dependency is involved.
+#
+# Bypass with `git commit --no-verify` when you genuinely need to.
+
+subject=$(head -n 1 "$1")
+
+# Machine-generated messages git creates on its own. Never authored by hand.
+case "$subject" in
+  "Merge "*|"Revert "*|"fixup! "*|"squash! "*) exit 0 ;;
+esac
+
+# type(optional scope)!: description
+pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9,/-]+\))?!?: .+'
+
+if printf '%s' "$subject" | grep -Eq "$pattern"; then
+  exit 0
+fi
+
+cat >&2 <<EOF
+
+  Commit message rejected: it is not a Conventional Commit.
+
+    $subject
+
+  Expected:  type(optional-scope): description
+
+  Types      feat fix docs style refactor perf test build ci chore revert
+  Bumps      feat -> minor    fix -> patch    ! or BREAKING CHANGE -> see docs
+  Silent     anything else never appears in the changelog at all
+
+  Examples
+    feat(transcript): break paragraphs on speaker change
+    fix(ytdlp): handle videos with no chapters
+    docs: explain why dDurationMs is never read
+
+  See docs/07-releasing.md. Bypass with --no-verify.
+
+EOF
+exit 1

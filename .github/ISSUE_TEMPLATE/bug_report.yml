@@ -1,0 +1,58 @@
+name: Bug report
+description: Something behaved differently than documented
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before you paste anything:** yt-dlp's `info.json` embeds the public
+        IP of the machine that ran the extraction in every caption URL. Do not
+        attach that file as-is — redact `ip=` first, or attach only the field
+        that matters.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you got instead.
+    validations:
+      required: true
+
+  - type: input
+    id: video
+    attributes:
+      label: Video URL
+      description: |
+        The video this fails on. Most bugs here are properties of a specific
+        video — no chapters, no auto-captions, an unusual language, several
+        speakers — so without the URL the report usually cannot be reproduced.
+      placeholder: https://www.youtube.com/watch?v=...
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command and output
+      description: The exact command you ran, and the full output.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: |
+        Paste the output of:
+
+        ```sh
+        node --version && yt-dlp --version && veta --version
+        ```
+
+        Plus your OS. veta is verified on Linux and macOS only — Windows is
+        implemented but not covered by CI, which is worth saying if that is
+        where you are.
+      render: shell
+    validations:
+      required: true

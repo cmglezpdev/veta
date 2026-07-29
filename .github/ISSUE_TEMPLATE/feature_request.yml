@@ -1,0 +1,38 @@
+name: Feature request
+description: Propose something veta should do
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        `PRD.md` lists what veta is for and what it deliberately does not do.
+        Worth a look first — a non-goal is a decision, not an oversight.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: |
+        What are you trying to do that you cannot do today? Describe the
+        situation, not the feature — the best solution is often not the one
+        the reporter had in mind.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+      description: Optional. If you already have a shape for it, describe it.
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried instead
+      description: |
+        Existing flags, config, or a manual workaround. If something almost
+        works, saying where it stops is the most useful part of the report.
+    validations:
+      required: false

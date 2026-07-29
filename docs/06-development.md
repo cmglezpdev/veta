@@ -11,6 +11,10 @@
 pnpm install
 ```
 
+This also activates the git hooks in `.githooks/`, via the `prepare` script.
+One of them rejects commit messages the release automation cannot classify —
+see [Releasing](07-releasing.md#the-hook-that-catches-it).
+
 ## Commands
 
 | | |

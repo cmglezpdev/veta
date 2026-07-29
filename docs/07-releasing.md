@@ -21,6 +21,27 @@ type(scope): description
 A commit that does not follow this format cannot be classified, and its
 change silently never appears in a release note.
 
+### The hook that catches it
+
+That silence is the problem worth engineering against. Nothing fails when a
+message is malformed — `release-please` just skips it, so the change is
+missing from the changelog and nobody finds out until someone goes looking.
+
+`.githooks/commit-msg` rejects a message the automation could not classify,
+while it is still editable. It is a shell script with a regex and **no
+dependency**: `husky`'s entire job is pointing `core.hooksPath` at a
+versioned directory, which is one line in the `prepare` script, so it runs
+on `pnpm install` with nothing to install.
+
+Merge, revert, and `fixup!` subjects are exempt — git writes those itself.
+`git commit --no-verify` bypasses the check.
+
+> **The hook cannot protect a squash merge.** Squashing replaces every commit
+> message with the PR title, typed into the GitHub UI, where no local hook
+> runs. That is a second reason not to squash here: the first is that commits
+> in this repository are split by unit of work on purpose, and squashing
+> discards that. Merge or rebase.
+
 ## What counts as breaking
 
 For a CLI, the public contract is the **user-facing surface**, not internal
