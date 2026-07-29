@@ -34,11 +34,12 @@ first two are enough to understand any part of the codebase.
 
 Numbers in these documents are measured against a real payload, not
 estimated. Where a figure appears — 2,580 cues, 39 pauses over a second,
-20x size reduction — it came from running the code against the committed
+17.9x size reduction — it came from running the code against the committed
 fixtures, and you can reproduce it:
 
 ```sh
-node scripts/inspect-transcript.ts
+node scripts/inspect-transcript.ts   # the numbers
+node scripts/build-transcript.ts     # the document itself
 ```
 
 Where something is a decision rather than a measurement, it says so, and

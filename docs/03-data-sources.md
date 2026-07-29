@@ -133,6 +133,39 @@ a track has no parseable URL.
 > [Architecture](02-architecture.md#enforcement): it is a wire-level
 > parameter name, and only `info-json.ts` may read it.
 
+## Speaker changes
+
+Captions have carried a speaker-change convention since US broadcast
+captioning (CEA-608, still alive in CEA-708): `>>` marks a change of speaker,
+`>>>` a change of topic, and `>> JOHN:` names one. Support for it varies
+enormously by format — SRT has no mechanism at all, only conventions, while
+WebVTT has real markup in `<v John>`.
+
+`json3` carries **both**. The marker appears in the text, and the same
+segment carries a structural flag:
+
+```json
+{ "utf8": ">> Person", "acAsrConf": 0, "isSpeakerChange": 1 }
+```
+
+In the reference video the two agree exactly — 94 flags, 94 `>>`, always on
+the first segment of an event, no `>>>` anywhere. If a rule is ever built on
+this, **it must read `isSpeakerChange`, not the text**: the flag is data, the
+arrow is a convention that could stop being emitted, or be spoken aloud by a
+person reading punctuation. Note the value is `1`, not `true`.
+
+**What it does not tell you is who.** There is no diarization identity — no
+names, no speaker IDs. The flag says the speaker changed. With two people you
+can alternate and be mostly right; with three, or with an interruption, you
+have nothing.
+
+Today nothing in the pipeline reads it, and the `>>` markers are **left in
+the rendered text on purpose**. They are the only speaker signal the document
+carries, and the document's reader is a language model that can be told how
+to interpret them. Stripping them without also breaking paragraphs there
+would remove the signal and add nothing. See
+[Segmentation](05-segmentation.md#the-open-failure).
+
 ## Test fixtures
 
 Parsing is tested against real captured payloads, not hand-written JSON. Hand

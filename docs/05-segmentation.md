@@ -120,45 +120,64 @@ Reproduce with `node scripts/inspect-transcript.ts`.
 
 ## The open failure
 
-The last bound fails, and it is a genuine open question rather than a bug.
+The last bound fails. It is a **known failure with an identified cause and a
+deferred fix**, not an unexplained one.
 
 The design predicted this break mix: soft-pause 70–85, strong-pause 25–35,
 sentence 10–15. What happened: soft-pause 45, strong-pause 23, **sentence
 63**.
 
-The cause is the rule order. `sentence` is evaluated before `soft-pause`, so
-whenever both could fire, `sentence` wins. The prediction assumed `sentence`
-would rarely fire, reasoning from the fact that only 6.8% of cues end in
-punctuation. But once a paragraph passes 80 words it keeps accumulating until
-*something* breaks it, and with 176 sentence-final cues distributed through
-the video, the chance of reaching one before a 500 ms gap turned out higher
-than estimated.
+### The proximate cause
 
-**Why this may not be a defect.** The bound's stated purpose is to assert
-that the pause rules are doing real work — the anti-regression guard for the
-failure described above, where a rule fired zero times. Here the pause rules
-fire 68 times, nearly half of all non-chapter breaks. That is not dead code.
+Rule order. `sentence` is evaluated before `soft-pause`, so whenever both
+could fire, `sentence` wins. The prediction assumed `sentence` would rarely
+fire, reasoning from the fact that only 6.8% of cues end in punctuation. But
+once a paragraph passes 80 words it keeps accumulating until *something*
+breaks it, and with 176 sentence-final cues in the video, reaching one before
+a 500 ms gap turned out likelier than estimated.
 
-And `sentence` breaks are arguably *better* breaks: the design's own rule
-ordering places `sentence` above `soft-pause`. The segmenter is being
-penalized for preferring the higher-quality break.
+### The real cause: a signal the segmenter cannot see
 
-**Why it might still be one.** "The test fails, so loosen the test" is
-precisely how defects ship. The honest position is that this has not been
-resolved by reading actual output yet, and until it has, the bound stays
-failing rather than being quietly adjusted.
+That explanation was incomplete, and reading the rendered document is what
+exposed the rest of it.
 
-The options on the table:
+The reference video is an interview. YouTube's captions mark every speaker
+change — 94 of them. The segmenter is not told about any of them, so a
+paragraph keeps accumulating words straight through a change of speaker. **65
+of the 94 turns land buried mid-paragraph**, gluing an interviewer's question
+to the guest's answer:
 
-1. **Relax to > 40%** and restate the assertion as "the pause rules are not
-   dead code", which is what it was always meant to guarantee.
-2. **Lower `PAUSE_SOFT_MS`** so pauses fire before reaching a sentence end.
-   This tunes constants to satisfy a metric rather than to improve output,
-   which is backwards.
-3. **Decide after reading rendered output.** The evidence that does not yet
-   exist.
+> …How did you get into tech and software engineering? **>>** Yeah. Uh so I
+> uh I grew up…
 
-Option 3 first, then most likely option 1.
+Paragraphs run long because nothing stops them at the one boundary a reader
+would consider obvious. Running long is what makes them collide with a
+sentence mark before a pause. `sentence` dominating is the symptom; the
+missing speaker boundary is the cause.
+
+### Why the bound is not being relaxed
+
+The obvious move — restate the assertion as `> 40%` and call it "the pause
+rules are not dead code" — would turn the bound green **immediately after it
+did its job**. It flagged a real gap in the segmenter. Loosening it now would
+delete the only record of that.
+
+Equally rejected: lowering `PAUSE_SOFT_MS` so pauses win the race. That tunes
+a constant to satisfy a metric rather than to improve output.
+
+So the bound stays red, with the cause written next to it. A failing check
+whose reason is understood is worth more than a passing one whose bar was
+lowered.
+
+### Why the fix is deferred
+
+Breaking on speaker change requires adding a field to `CaptionCue` — the
+single type every present and future transcript source must produce. That
+contract should not be extended from a sample of one video, before the CLI
+exists and before the pipeline produces anything end to end.
+
+When it is built, the signal to use is **`isSpeakerChange`**, not the `>>`
+text. See [Data sources](03-data-sources.md#speaker-changes).
 
 ## Next
 

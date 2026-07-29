@@ -133,6 +133,41 @@ than aspirational.
 The consequence: a paragraph belongs to the chapter of its first cue, and
 cannot span two. Verified at 0 straddling paragraphs.
 
+## `renderTranscript`
+
+`src/domain/transcript/render.ts`. The last stage: paragraphs in, one
+markdown string out. It writes nothing and reads no clock — the caller
+decides where the bytes go.
+
+Markdown is the target because the document has two readers with the same
+needs. A person wants headings to skim and timestamps to jump from; a
+language model reads headings as structure and spends no tokens stripping
+markup. Anything richer would serve one at the other's expense.
+
+Each paragraph opens with its start time, linked to that moment in the video:
+
+```markdown
+## 4. Getting involved with open source
+
+[`13:16`](https://www.youtube.com/watch?v=1VqKUrxR2C8&t=796) And then how did
+you transition into open source? …
+```
+
+Three details are deliberate:
+
+- **Headings come from the paragraphs, not from the chapter list.** A chapter
+  with no speech in it produces no heading rather than an empty section.
+- **`t=` is truncated, not rounded**, because YouTube seeks to the start of
+  the second — truncating lands just before the first word instead of just
+  after it.
+- **The link is built by string concatenation, not `URL`.** The canonical URL
+  arrives from outside the process and may not parse. A slightly wrong link is
+  recoverable; an exception halfway through rendering is not. With no URL at
+  all the timestamp degrades to plain text.
+
+Against the reference video: 1,904 KB of json3 becomes 106 KB of markdown,
+**17.9x smaller**, and that is before a single token is spent on reasoning.
+
 ## Verifying any of this
 
 ```sh

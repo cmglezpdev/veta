@@ -77,7 +77,8 @@ tests/arch/                   import-boundary and vocabulary tests
 
 The tree above is the plan. Built so far:
 
-- `domain/json.ts`, `domain/transcript/{cue,join,chapters,segment}.ts`
+- `domain/json.ts`, `domain/transcript/{cue,join,chapters,segment,render,deep-link}.ts`
+- `domain/video/metadata.ts`, `domain/time/clock.ts`
 - `adapters/ytdlp/{info-json,json3}.ts` and the captured fixtures
 - `cli/main.ts` as an empty placeholder
 
@@ -136,6 +137,22 @@ walk and no dependencies.
 
 Two conventions keep the gaps narrow: `domain/` uses no barrel files, and
 dynamic `import()` is not used anywhere.
+
+### They are not written yet, and it already cost something
+
+`domain/transcript/chapters.ts` imported `Chapter` from
+`adapters/ytdlp/info-json.ts` — a domain file reaching into an adapter, the
+one thing the rule forbids. It survived review because it was an
+`import type`, which is invisible at runtime and reads as harmless.
+
+It is not harmless. `Chapter` describes the problem, not yt-dlp's wire
+format, and leaving it in the adapter meant that every future consumer —
+rendering, the ASR source — would have had to import from `adapters/` to
+describe a chapter.
+
+The types now live in `domain/video/metadata.ts`, where the tree above always
+said they belonged, and the adapter imports them. The boundary test would
+have caught this on the first commit.
 
 ## Next
 

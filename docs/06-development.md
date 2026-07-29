@@ -19,9 +19,19 @@ pnpm install
 | `pnpm test` | Builds, then runs Vitest |
 | `pnpm build` | Compiles `src/` to `dist/`, excluding tests |
 | `node scripts/inspect-transcript.ts` | Runs the normalization chain against the fixtures and reports what it produced |
+| `node scripts/build-transcript.ts` | Renders the same chain to markdown, at `out/transcript.md` |
 
-The inspect script needs no network, no yt-dlp, and no build step. It is the
-fastest way to see the effect of a change to parsing or segmentation.
+Neither script needs the network, yt-dlp, or a build step. Between them they
+are the fastest way to see the effect of a change to parsing or segmentation:
+the first reports the numbers, the second produces the document to read.
+
+They answer different questions, and both are needed. Statistics cannot tell
+you that paragraphs read badly, and reading cannot tell you that the emergency
+rule quietly made most of the breaks. The speaker-change gap described in
+[Segmentation](05-segmentation.md#the-open-failure) was invisible to every
+metric and obvious within a page of prose.
+
+`out/` is git-ignored.
 
 ### Why `typecheck` is separate from `test`
 
