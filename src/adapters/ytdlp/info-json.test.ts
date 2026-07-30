@@ -33,6 +33,119 @@ describe("parseInfoJson", () => {
       const starts = metadata.chapters.map((c) => c.startSec);
       expect(starts).toEqual([...starts].sort((a, b) => a - b));
     });
+
+    // EXT-04: `info.language` is a locale and caption keys are base subtags.
+    // Comparing them raw finds nothing, which is what makes a selector fall
+    // through to "first key in the map".
+    it("normalizes the spoken language from a locale to a base subtag", () => {
+      expect(REFERENCE["language"]).toBe("en-US");
+      expect(metadata.originalLanguage).toBe("en");
+    });
+
+    it("flattens both caption maps into one track list", () => {
+      expect(metadata.captionTracks.map((t) => t.sourceKey).sort()).toEqual([
+        "de",
+        "en",
+        "en-orig",
+        "es",
+        "fr",
+      ]);
+      // This video has no authored tracks at all.
+      expect(metadata.captionTracks.every((t) => t.kind === "asr")).toBe(true);
+    });
+
+    // D20: a track is a translation iff its media URL carries the marker.
+    it("identifies which tracks are machine translations", () => {
+      const byKey = new Map(metadata.captionTracks.map((t) => [t.sourceKey, t]));
+      expect(byKey.get("en")?.isTranslation).toBe(false);
+      expect(byKey.get("en-orig")?.isTranslation).toBe(false);
+      expect(byKey.get("es")?.isTranslation).toBe(true);
+      expect(byKey.get("fr")?.isTranslation).toBe(true);
+    });
+
+    // The contrapositive, which catches a parser that stops reading the query
+    // string early and reports every track as original.
+    it("marks no track original whose own URL says otherwise", () => {
+      const maps = [REFERENCE["subtitles"], REFERENCE["automatic_captions"]]
+        .filter((m): m is Record<string, unknown> => typeof m === "object" && m !== null)
+        .flatMap((m) => Object.entries(m));
+
+      const rawlyTranslated = new Set(
+        maps
+          .filter(([, formats]) =>
+            (formats as { url?: string }[]).some((f) => String(f.url ?? "").includes("tlang=")),
+          )
+          .map(([key]) => key),
+      );
+
+      const wronglyOriginal = metadata.captionTracks.filter(
+        (t) => t.isTranslation === false && rawlyTranslated.has(t.sourceKey),
+      );
+      expect(wronglyOriginal).toEqual([]);
+      expect(rawlyTranslated.size).toBeGreaterThan(0);
+    });
+
+    it("carries the original marker and the display name", () => {
+      const orig = metadata.captionTracks.find((t) => t.sourceKey === "en-orig");
+      expect(orig?.isOriginalMarker).toBe(true);
+      expect(orig?.displayName).toBeTruthy();
+      expect(metadata.captionTracks.find((t) => t.sourceKey === "en")?.isOriginalMarker).toBe(
+        false,
+      );
+    });
+
+  });
+
+  describe("caption tracks in degraded payloads", () => {
+    it("reports an unreadable URL as undeterminable rather than original", () => {
+      const { captionTracks } = parseInfoJson({
+        id: "x",
+        title: "t",
+        automatic_captions: { en: [{ ext: "json3", url: "not a url" }] },
+      });
+      expect(captionTracks[0]?.isTranslation).toBeNull();
+    });
+
+    it("reports a missing URL as undeterminable", () => {
+      const { captionTracks } = parseInfoJson({
+        id: "x",
+        title: "t",
+        automatic_captions: { en: [{ ext: "json3" }] },
+      });
+      expect(captionTracks[0]?.isTranslation).toBeNull();
+    });
+
+    it("keeps reading formats past one it cannot parse", () => {
+      const { captionTracks } = parseInfoJson({
+        id: "x",
+        title: "t",
+        automatic_captions: {
+          es: [{ ext: "srt", url: "://broken" }, { ext: "json3", url: "https://x/y?tlang=es" }],
+        },
+      });
+      expect(captionTracks[0]?.isTranslation).toBe(true);
+    });
+
+    it("treats absent caption maps as no tracks", () => {
+      expect(parseInfoJson({ id: "x", title: "t" }).captionTracks).toEqual([]);
+    });
+
+    it("distinguishes authored tracks from generated ones", () => {
+      const { captionTracks } = parseInfoJson({
+        id: "x",
+        title: "t",
+        subtitles: { en: [{ ext: "json3", url: "https://x/y" }] },
+        automatic_captions: { fr: [{ ext: "json3", url: "https://x/y?tlang=fr" }] },
+      });
+      expect(captionTracks.map((t) => [t.sourceKey, t.kind])).toEqual([
+        ["en", "manual"],
+        ["fr", "asr"],
+      ]);
+    });
+
+    it("reports no spoken language rather than inventing one", () => {
+      expect(parseInfoJson({ id: "x", title: "t" }).originalLanguage).toBeNull();
+    });
   });
 
   it("sorts chapters the source handed over out of order", () => {

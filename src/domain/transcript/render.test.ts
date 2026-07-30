@@ -17,6 +17,8 @@ function metadata(overrides: Partial<VideoMetadata> = {}): VideoMetadata {
       { title: "Opening", startSec: 0, endSec: 60 },
       { title: "The Middle", startSec: 60, endSec: 120 },
     ],
+    originalLanguage: "en",
+    captionTracks: [],
     ...overrides,
   };
 }
