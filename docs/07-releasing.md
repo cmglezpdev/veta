@@ -36,30 +36,57 @@ on `pnpm install` with nothing to install.
 Merge, revert, and `fixup!` subjects are exempt — git writes those itself.
 `git commit --no-verify` bypasses the check.
 
-> **The hook cannot see a PR title.** Merging writes a commit whose subject is
-> the title typed into the GitHub UI — on the server, where no local hook runs.
-> Squashing goes further and replaces *every* message with it. That is a second
-> reason not to squash here: the first is that commits in this repository are
-> split by unit of work on purpose, and squashing discards that. Merge or
-> rebase.
+> **The hook cannot see a PR title.** Merging writes a commit whose subject
+> comes from the title typed into the GitHub UI — composed on the server, where
+> no local hook runs. Squashing goes further and makes that title the *only*
+> message the commit has.
 
-### The gap that closed
+### The title is the string that matters
 
-The warning above was not hypothetical. PR #2 merged as
+`release-please` associates every commit with the pull request it came from and
+reads that PR's **title**, not the merge commit's subject. The title is
+therefore the load-bearing string, under any merge strategy, and it is what the
+`pr-title` job in `.github/workflows/ci.yml` validates.
+
+That job runs the title through **`.githooks/commit-msg` itself** rather than
+restating its regex, so the rule has one definition and the two places it is
+enforced cannot drift apart. A failing check leaves the title still editable,
+which is the point of catching it there.
+
+PR #2 is the worked example, and it is worth reading precisely, because it is
+easy to draw the wrong lesson from it. Its merge commit landed on `main` as
 `eat(transcript): turn captions into a readable, deep-linked document` — the
-leading `f` lost while typing the title. `release-please` could not classify
-it, so the largest change in the project so far contributed nothing to the
-changelog, and nothing failed to say so.
+leading `f` lost while hand-editing the merge message. Its **title**, however,
+was correct, so `release-please` classified the change as a feature, wrote it
+into the 0.2.0 changelog, and bumped the minor version. Nothing was lost.
 
-The `pr-title` job in `.github/workflows/ci.yml` now runs that same title
-through **`.githooks/commit-msg` itself**, rather than restating its regex.
-One definition, two places it is enforced, no way for them to drift apart. The
-title is still editable when the check fails, which is the whole point of
-catching it there.
+The malformed subject is cosmetic noise in `git log`, not a release failure. It
+is left as it is: rewriting it would mean a force push over a released tag to
+tidy one line of history.
 
-The commit already on `main` is left as it is: rewriting it would mean a force
-push over a released tag to fix a changelog entry, which costs more than the
-entry is worth.
+### Choosing a merge strategy
+
+Both squash and merge commits work. The trade is history granularity against
+changelog granularity, and it is a per-PR choice rather than a repository-wide
+one:
+
+| | Lands on `main` | Changelog | Revert / `bisect` |
+|---|---|---|---|
+| Merge commit | Every commit, plus one grouping them | One entry per commit | Per work unit |
+| Squash | One commit, message from the PR title | One entry per PR | Per PR only |
+
+Squash when a PR's internal commits are process noise — review fixups,
+corrections to earlier commits in the same branch — because those are entries
+nobody wants in a release note. Prefer a merge commit when the commits are
+split by unit of work and each one carries reasoning worth keeping attached to
+its own diff.
+
+One caveat if you merge rather than squash: `BEGIN_COMMIT_OVERRIDE`, the escape
+hatch for rewriting release notes after the fact, only works on squashed PRs.
+
+A verbose changelog is usually not a merge-strategy problem. Typing internal
+construction steps as `feat` puts them in front of users who did not gain a
+feature; see the note on commit types above.
 
 ## What counts as breaking
 
