@@ -14,7 +14,8 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "pretest": "pnpm run build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:live": "VETA_LIVE_TEST=1 vitest run src/adapters/ytdlp/ytdlp-extraction-source.live.test.ts"
   },
   "keywords": [
     "youtube",
