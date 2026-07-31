@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/cmglezpdev/veta/compare/veta-v0.2.0...veta-v0.2.1) (2026-07-31)
+
+
+### Documentation
+
+* correct how release-please reads a merged pull request ([#4](https://github.com/cmglezpdev/veta/issues/4)) ([dda924c](https://github.com/cmglezpdev/veta/commit/dda924cb31abbe59afc73682968149cf03393d99))
+
 ## [0.2.0](https://github.com/cmglezpdev/veta/compare/veta-v0.1.0...veta-v0.2.0) (2026-07-29)
 
 
