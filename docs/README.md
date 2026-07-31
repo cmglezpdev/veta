@@ -7,10 +7,16 @@ than assumed.
 for and what it must do. These documents are the counterpart: how it is
 actually built.
 
+**Lost?** Start at [Roadmap](08-roadmap.md) — where we are, what is next,
+and what is deliberately deferred. Same plan is mirrored in Engram under
+`veta/roadmap`.
+
+
 ## Reading order
 
 The documents build on each other. If you are new, read them in order — the
-first two are enough to understand any part of the codebase.
+first two are enough to understand any part of the codebase. Jump to 8 when
+you only need the delivery plan.
 
 | | | |
 |---|---|---|
@@ -21,6 +27,7 @@ first two are enough to understand any part of the codebase.
 | 5 | [Segmentation](05-segmentation.md) | Deciding where paragraphs break, from measured pauses |
 | 6 | [Development](06-development.md) | Running it, and why the toolchain looks like this |
 | 7 | [Releasing](07-releasing.md) | Conventional commits, version bumps, publishing |
+| 8 | [Roadmap](08-roadmap.md) | Living delivery plan — Route B slices and current next step |
 
 ## Where else to look
 
