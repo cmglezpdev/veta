@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/cmglezpdev/veta/compare/veta-v0.2.1...veta-v0.3.0) (2026-08-01)
+
+
+### Features
+
+* **cli:** minimal veta &lt;url&gt; writes transcript.md ([#8](https://github.com/cmglezpdev/veta/issues/8)) ([afc8a8e](https://github.com/cmglezpdev/veta/commit/afc8a8e1504585245963cc60b7259a1f363d77c5))
+
 ## [0.2.1](https://github.com/cmglezpdev/veta/compare/veta-v0.2.0...veta-v0.2.1) (2026-07-31)
 
 
