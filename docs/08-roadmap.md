@@ -1,7 +1,8 @@
 # 8. Roadmap — where we are
 
-**Next action:** Route B slice 2 — yt-dlp subprocess adapter behind
-`ExtractionSourcePort`. Until that lands, `veta <url>` still cannot run.
+**Next action:** Route B slice 3 — slug + exit-code map + minimal
+`veta <url>` that writes `transcript.md`. Slice 2 (port + yt-dlp adapter)
+is on `main`.
 
 This file is the living plan. Engram keeps the same picture under
 `veta/roadmap`. Prefer this document when you need to reorient; Engram is
@@ -30,8 +31,8 @@ videos before store/resume complexity paid off.
 | Slice | Goal                                                    | Status                                                                                  |
 | ----- | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | 1     | Choose the right caption track before fetching anything | **Done** — PR [#5](https://github.com/cmglezpdev/veta/pull/5), on `main` as of `v0.2.1` |
-| 2     | Talk to yt-dlp for real (port + adapter)                | **Next**                                                                                |
-| 3     | Minimal CLI: URL → package folder + `transcript.md`     | After slice 2                                                                           |
+| 2     | Talk to yt-dlp for real (port + adapter)                | **Done** — PR [#7](https://github.com/cmglezpdev/veta/pull/7), on `main`                |
+| 3     | Minimal CLI: URL → package folder + `transcript.md`     | **Next**                                                                                |
 
 
 **Explicitly deferred** until after `veta <url>` works:
@@ -61,19 +62,20 @@ Treat it as a **parts catalog**, not the current sequence.
 | Caption track selection + `VetaError`                              | PR [#5](https://github.com/cmglezpdev/veta/pull/5)                                                  |
 
 
-Empty shells still on disk (no real implementation yet): `src/ports/`,
-`src/pipeline/`, `src/adapters/store/`, several `src/domain/{run,config,prompt}/`,
-`src/cli/{commands,render}/`.
+Empty shells still on disk (no real implementation yet): `src/pipeline/`,
+`src/adapters/store/`, several `src/domain/{run,config,prompt}/`,
+`src/cli/{commands,render}/`. `src/ports/extraction-source.ts` and
+`src/adapters/ytdlp/` shipped in slice 2.
 
 ---
 
 
 
-## Slice 2 — next PR (detail)
+## Slice 2 — done (detail)
 
 **Outcome:** something in-process can resolve a yt-dlp binary, invoke it,
 classify failures, and implement `ExtractionSourcePort` — tested with a real
-fake executable on `VETA_YTDLP_PATH` (zero `vi.mock`).
+fake executable on `VETA_YTDLP_PATH` (zero `vi.mock`). On `main` via PR #7.
 
 
 | Piece                                       | Responsibility                                    |
@@ -85,18 +87,15 @@ fake executable on `VETA_YTDLP_PATH` (zero `vi.mock`).
 | `adapters/ytdlp/ytdlp-extraction-source.ts` | Port implementation                               |
 
 
-**Out of scope for this PR:** CLI UX, writing `transcript.md` end-to-end,
-store/resume. Those are slice 3+.
-
-**Commit typing:** prefer `chore` / focused scopes until `veta <url>` works
-for a user — then that PR earns `feat`. Squash-merge is the default; the
-**PR title** is the changelog line.
-
 ---
 
 
 
-## Slice 3 — after that
+## Slice 3 — next PR (detail)
+
+**Outcome:** from a clean checkout, `veta <youtube-url>` produces a
+readable `transcript.md` using the track selector from slice 1 and the
+adapter from slice 2.
 
 
 | Piece                  | Responsibility                                 |
@@ -106,9 +105,11 @@ for a user — then that PR earns `feat`. Squash-merge is the default; the
 | CLI extract path       | URL in → work dir + `transcript.md` out (thin) |
 
 
-Success looks like: from a clean checkout, `veta <youtube-url>` produces a
-readable transcript using the track selector from slice 1 and the adapter
-from slice 2.
+**Out of scope for this PR:** full `StorePort` / resume / `--force` blast
+radius, config persistence, prompt hydration + agent delivery.
+
+**Commit typing:** this PR earns `feat` — first user-visible `veta <url>`.
+Squash-merge is the default; the **PR title** is the changelog line.
 
 ---
 
@@ -128,6 +129,6 @@ from slice 2.
 ## Checklist — update when a slice merges
 
 - [x] Slice 1 — caption track selection
-- [ ] Slice 2 — `ExtractionSourcePort` + yt-dlp adapter
+- [x] Slice 2 — `ExtractionSourcePort` + yt-dlp adapter
 - [ ] Slice 3 — slug + exit codes + minimal `veta <url>`
 - [ ] Revisit deferred store/resume/prompt work against real usage
