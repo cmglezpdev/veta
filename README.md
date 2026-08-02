@@ -123,12 +123,28 @@ Product intent lives in [`PRD.md`](PRD.md).
 
 ## Develop from source
 
+Use **pnpm 11.17.0** (pinned in `package.json` as `packageManager`). Newer pnpm
+versions may work, but this repo is tested against 11.17 — enable it with
+Corepack:
+
+```sh
+corepack enable
+corepack prepare pnpm@11.17.0 --activate
+```
+
+If global installs fail with “bin directory … is not in PATH”, run `pnpm setup`
+once and reload your shell (`source ~/.zshrc`).
+
 ```sh
 pnpm install
 pnpm test
 pnpm build
-pnpm link --global   # then: veta …
+pnpm add -g .        # register the local `veta` bin globally
+veta doctor
 ```
+
+`pnpm link --global` was removed in pnpm 11; use `pnpm add -g .` instead. To
+remove the local global install: `pnpm remove -g @cmglezpdev/veta`.
 
 Details: [docs/06-development.md](docs/06-development.md).
 Releases: [docs/07-releasing.md](docs/07-releasing.md).
