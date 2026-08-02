@@ -39,11 +39,22 @@ describe("cli entrypoint", () => {
     expect(result.stdout).toMatch(/extract/i);
   });
 
-  it("exits 0 for completion and prints a zsh compdef script", () => {
-    const result = runCli(["completion"]);
+  it("exits 0 for completion and prints a zsh compdef script when SHELL is zsh", () => {
+    // yargs picks the template from $SHELL / $ZSH_NAME — CI runners are bash.
+    const result = runCli(["completion"], { SHELL: "/bin/zsh" });
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("#compdef");
+    expect(result.stdout).toContain("--get-yargs-completions");
+  });
+
+  it("exits 0 for completion and prints a bash script when SHELL is bash", () => {
+    const result = runCli(["completion"], { SHELL: "/bin/bash", ZSH_NAME: "" });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).not.toContain("#compdef");
+    expect(result.stdout).toContain("--get-yargs-completions");
+    expect(result.stdout).toMatch(/bashrc|bash_profile/i);
   });
 
   it("exits 2 for unrecognized input", () => {
