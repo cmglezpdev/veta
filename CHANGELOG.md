@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.1](https://github.com/cmglezpdev/veta/compare/veta-v0.4.0...veta-v0.4.1) (2026-08-02)
+
+
+### Bug Fixes
+
+* **transcript:** end paragraphs on completed sentences ([#13](https://github.com/cmglezpdev/veta/issues/13)) ([2897135](https://github.com/cmglezpdev/veta/commit/2897135253fea614c9eaa3b9d1de3b3ffcd97610))
+
+
+### Documentation
+
+* **readme:** give v0.4 a public install-and-run face ([#12](https://github.com/cmglezpdev/veta/issues/12)) ([11b1387](https://github.com/cmglezpdev/veta/commit/11b138743924b5473f0e9446eb2821adfd0d79aa))
+
 ## [0.4.0](https://github.com/cmglezpdev/veta/compare/veta-v0.3.0...veta-v0.4.0) (2026-08-02)
 
 
