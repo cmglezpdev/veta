@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/cmglezpdev/veta/compare/veta-v0.3.0...veta-v0.4.0) (2026-08-02)
+
+
+### Features
+
+* **cli:** yargs shell with completion and doctor ([#10](https://github.com/cmglezpdev/veta/issues/10)) ([4d2e79a](https://github.com/cmglezpdev/veta/commit/4d2e79a78b7b7da173506eeeb45add20cf4f568c))
+
 ## [0.3.0](https://github.com/cmglezpdev/veta/compare/veta-v0.2.1...veta-v0.3.0) (2026-08-01)
 
 
