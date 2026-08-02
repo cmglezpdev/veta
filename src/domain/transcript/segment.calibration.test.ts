@@ -18,7 +18,7 @@ import { parseInfoJson } from "../../adapters/ytdlp/info-json.ts";
 import { parseJson3 } from "../../adapters/ytdlp/json3.ts";
 import { assignChapters } from "./chapters.ts";
 import type { BreakReason } from "./segment.ts";
-import { PARAGRAPH_MAX_WORDS, segmentParagraphs } from "./segment.ts";
+import { PARAGRAPH_MAX_WORDS, SENTENCE_END, segmentParagraphs } from "./segment.ts";
 
 const FIXTURES = new URL("../../adapters/ytdlp/__fixtures__/", import.meta.url);
 const readJson = (name: string): unknown =>
@@ -69,29 +69,25 @@ describe("paragraph calibration against the reference video", () => {
   });
 
   /**
-   * KNOWN FAILURE, pinned rather than relaxed. The design's target is > 50%;
-   * the measured value is 47.6%.
+   * The design now breaks primarily on sentence ends: YouTube's ASR puts most
+   * sentence marks mid-cue ("the market. Next"), and the segmenter surfaces
+   * them by splitting such cues at their last sentence end before grouping,
+   * so paragraphs end on completed ideas. Pauses remain as the fallback for
+   * speech that carries no punctuation.
    *
-   * The cause is identified: the reference video is an interview, and its
-   * captions mark 94 speaker changes that the segmenter is never told about.
-   * 65 of those turns land buried mid-paragraph, so paragraphs run past the
-   * one boundary a reader would consider obvious, run long, and collide with
-   * a sentence mark before they reach a pause. `sentence` dominating at 38.7%
-   * is the symptom; the missing speaker boundary is the cause.
-   *
-   * The bound is therefore asserted at the value we have, so a REGRESSION
-   * still fails the build, and raised to 0.5 once speaker changes become a
-   * break signal. Relaxing it to a permanently softer target would erase the
-   * only record that this is unfinished; skipping it would hide it entirely.
-   *
-   * See docs/05-segmentation.md, "The open failure".
+   * This replaces the earlier pin that paused breaks should dominate. That
+   * philosophy treated `sentence` dominating as a symptom of a missing
+   * signal; the current design makes sentence ends the signal on purpose.
+   * The regression guard is now the actual goal: a paragraph should not end
+   * mid-sentence. A small share is allowed for chapter-forced breaks and
+   * for very long sentences with no punctuation — but a regression back to
+   * pause-only segmentation, which cuts mid-sentence freely, must fail.
    */
-  it("is still short of the pause-driven target (known, tracked)", () => {
-    const pauseDriven = share("strong-pause") + share("soft-pause");
-    const nonChapter = 1 - share("chapter");
-    const ratio = pauseDriven / nonChapter;
-
-    expect(ratio).toBeGreaterThanOrEqual(0.45);
-    expect(ratio, "target reached — raise this bound to 0.5 and delete the pin").toBeLessThan(0.5);
+  it("ends paragraphs on completed sentences", () => {
+    const midSentence = paragraphs.filter(
+      (p) => p.endedBy !== null && p.endedBy !== "chapter" && !SENTENCE_END.test(p.text.trim()),
+    );
+    const share = midSentence.length / paragraphs.length;
+    expect(share).toBeLessThan(0.15);
   });
 });
