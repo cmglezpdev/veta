@@ -38,10 +38,12 @@
   "packageManager": "pnpm@11.17.0",
   "type": "module",
   "dependencies": {
+    "yargs": "^18.1.0",
     "youtube-dl-exec": "^3.1.9"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
+    "@types/yargs": "^17.0.35",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   }
