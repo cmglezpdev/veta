@@ -14,6 +14,7 @@ import { isMonotonic } from "../src/domain/transcript/cue.ts";
 import { formatClock } from "../src/domain/time/clock.ts";
 import {
   PARAGRAPH_MAX_WORDS,
+  SENTENCE_END,
   type BreakReason,
   segmentParagraphs,
 } from "../src/domain/transcript/segment.ts";
@@ -79,9 +80,10 @@ for (const [reason, n] of [...tally].sort((a, b) => b[1] - a[1])) {
 
 // The bounds the design commits to. These are what a human eyeballing the
 // rendered markdown cannot check.
-const nonChapter = reasons.filter((r) => r !== "chapter").length;
-const pauseDriven = reasons.filter((r) => r === "strong-pause" || r === "soft-pause").length;
 const capShare = (tally.get("cap") ?? 0) / reasons.length;
+const midSentence = paragraphs.filter(
+  (p) => p.endedBy !== null && p.endedBy !== "chapter" && !SENTENCE_END.test(p.text.trim()),
+).length;
 const straddling = paragraphs.filter((p, i) => {
   // Half-open range: the next paragraph's first cue is NOT part of this one.
   const upper = paragraphs[i + 1]?.startMs ?? Infinity;
@@ -97,4 +99,8 @@ check(capShare < 0.15, "cap breaks < 15% of all", `${(capShare * 100).toFixed(1)
 check(pick(0.5) >= 60 && pick(0.5) <= 160, "median length within 60-160 words", `${pick(0.5)}`);
 check(pick(1) <= PARAGRAPH_MAX_WORDS + 40, "max length bounded", `${pick(1)}`);
 check(straddling === 0, "paragraphs spanning two chapters", `${straddling}`);
-check(pauseDriven / nonChapter > 0.5, "pause rules > 50% of non-chapter", `${((pauseDriven / nonChapter) * 100).toFixed(1)}%`);
+check(
+  midSentence / paragraphs.length < 0.15,
+  "non-chapter mid-sentence < 15%",
+  `${((midSentence / paragraphs.length) * 100).toFixed(1)}%`,
+);
