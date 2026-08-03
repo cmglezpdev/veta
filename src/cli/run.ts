@@ -1,3 +1,4 @@
+import { FsStore } from "../adapters/store/fs-store.ts";
 import { YtDlpExtractionSource } from "../adapters/ytdlp/ytdlp-extraction-source.ts";
 import { VetaError, isVetaError } from "../domain/errors/veta-error.ts";
 import type { VetaErrorCode } from "../domain/errors/veta-error.ts";
@@ -5,7 +6,11 @@ import { buildCliProgram, CommandFinished } from "./cli-structure.ts";
 import { exitCodeFor } from "./exit-codes.ts";
 import { extract } from "./extract.ts";
 
-function outputRootFromEnv(): string {
+/**
+ * Where packages live. Per invocation, from the environment — veta keeps no
+ * config file, so there is nothing else to consult.
+ */
+function dataDirFromEnv(): string {
   return process.env["VETA_DATA_DIR"] ?? process.cwd();
 }
 
@@ -37,8 +42,8 @@ function vetaErrorCodeFromString(code: string): VetaErrorCode | undefined {
 
 async function runExtract(url: string, preferredLang?: string): Promise<void> {
   const source = new YtDlpExtractionSource();
-  const transcriptPath = await extract(url, source, {
-    outputRoot: outputRootFromEnv(),
+  const store = new FsStore({ dataDir: dataDirFromEnv() });
+  const transcriptPath = await extract(url, source, store, {
     preferredLang: preferredLang ?? null,
   });
   process.stdout.write(`${transcriptPath}\n`);

@@ -1,10 +1,12 @@
-import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { FsStore } from "../adapters/store/fs-store.ts";
 import { resetBinaryCache } from "../adapters/ytdlp/binary.ts";
 import { YtDlpExtractionSource } from "../adapters/ytdlp/ytdlp-extraction-source.ts";
+import { isVetaError } from "../domain/errors/veta-error.ts";
 import { extract } from "./extract.ts";
 
 const FIXTURES = path.join(
@@ -15,7 +17,7 @@ const INFO_FIXTURE = path.join(FIXTURES, "info.json");
 const CAPTION_FIXTURE = path.join(FIXTURES, "captions.en.json3");
 
 let root: string;
-let outputRoot: string;
+let dataDir: string;
 let binary: string;
 let previousBinaryPath: string | undefined;
 let previousPath: string | undefined;
@@ -26,7 +28,7 @@ function shellQuote(value: string): string {
 
 beforeEach(async () => {
   root = await mkdtemp(path.join(tmpdir(), "veta-extract-"));
-  outputRoot = path.join(root, "out");
+  dataDir = path.join(root, "out");
   binary = path.join(root, "yt-dlp");
   previousBinaryPath = process.env["VETA_YTDLP_PATH"];
   previousPath = process.env["PATH"];
@@ -70,13 +72,17 @@ afterEach(async () => {
   await rm(root, { force: true, recursive: true });
 });
 
+function newStore(): FsStore {
+  return new FsStore({ dataDir });
+}
+
 describe("extract", () => {
   it("writes a markdown transcript under a slugged package directory", async () => {
     const source = new YtDlpExtractionSource();
-    const transcriptPath = await extract("1VqKUrxR2C8", source, { outputRoot });
+    const transcriptPath = await extract("1VqKUrxR2C8", source, newStore());
 
     expect(transcriptPath).toBe(
-      path.join(outputRoot, "building-opencode-with-dax-raad", "transcript.md"),
+      path.join(dataDir, "building-opencode-with-dax-raad", "transcript.md"),
     );
 
     const markdown = await readFile(transcriptPath, "utf8");
@@ -90,11 +96,55 @@ describe("extract", () => {
     const transcriptPath = await extract(
       "https://www.youtube.com/watch?v=1VqKUrxR2C8",
       source,
-      { outputRoot },
+      newStore(),
     );
 
     expect(transcriptPath.endsWith("transcript.md")).toBe(true);
     const markdown = await readFile(transcriptPath, "utf8");
     expect(markdown.startsWith("# ")).toBe(true);
+  });
+
+  it("keeps the package flat under the data directory", async () => {
+    const source = new YtDlpExtractionSource();
+
+    await extract("1VqKUrxR2C8", source, newStore());
+
+    expect(await readdir(dataDir)).toEqual(["building-opencode-with-dax-raad"]);
+  });
+
+  it("persists no run state, because this path has no resume to support yet", async () => {
+    const source = new YtDlpExtractionSource();
+
+    await extract("1VqKUrxR2C8", source, newStore());
+
+    expect(await readdir(dataDir)).not.toContain("index.json");
+    expect(await readdir(path.join(dataDir, "building-opencode-with-dax-raad"))).not.toContain(
+      "state.json",
+    );
+  });
+
+  it("leaves no interim id-named directory behind after the rename", async () => {
+    const source = new YtDlpExtractionSource();
+
+    await extract("1VqKUrxR2C8", source, newStore());
+
+    expect(await readdir(dataDir)).not.toContain("1vqkurxr2c8");
+  });
+
+  it("refuses rather than overwrite when the package name is already taken", async () => {
+    // Re-extracting a video whose package already exists lands here. Telling the
+    // two cases apart — same video again, or a different video with the same
+    // title — needs the identity in state.json, which arrives with resume.
+    const source = new YtDlpExtractionSource();
+    await extract("1VqKUrxR2C8", source, newStore());
+
+    let code = "no-throw";
+    try {
+      await extract("1VqKUrxR2C8", source, newStore());
+    } catch (error) {
+      code = isVetaError(error) ? error.code : `not-a-veta-error: ${String(error)}`;
+    }
+
+    expect(code).toBe("WORK_DIR_EXISTS");
   });
 });
