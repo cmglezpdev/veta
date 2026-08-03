@@ -31,6 +31,8 @@ export type VetaErrorCode =
   | "ROOT_OVERLAP"
   /** A path resolved outside the directory that was meant to contain it. */
   | "PATH_ESCAPE"
+  /** A package directory already exists under the name a run wants to take. */
+  | "WORK_DIR_EXISTS"
   /** The argument given is not a YouTube URL or video id. */
   | "INPUT_UNRECOGNIZED";
 

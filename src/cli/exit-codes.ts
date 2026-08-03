@@ -17,6 +17,7 @@ export const EXIT_CODES = {
   LANGUAGE_UNAVAILABLE: 4,
   ROOT_OVERLAP: 8,
   PATH_ESCAPE: 8,
+  WORK_DIR_EXISTS: 8,
   INPUT_UNRECOGNIZED: 2,
 } as const satisfies Record<VetaErrorCode, number>;
 

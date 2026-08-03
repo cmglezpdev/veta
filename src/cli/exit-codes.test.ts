@@ -14,6 +14,7 @@ const ALL_CODES: readonly VetaErrorCode[] = [
   "PAYLOAD_SHAPE_CHANGED",
   "ROOT_OVERLAP",
   "PATH_ESCAPE",
+  "WORK_DIR_EXISTS",
   "INPUT_UNRECOGNIZED",
 ];
 
@@ -53,9 +54,10 @@ describe("exitCodeFor", () => {
     expect(exitCodeFor(new VetaError("RATE_LIMITED", "slow"))).toBe(7);
   });
 
-  it("maps ROOT_OVERLAP and PATH_ESCAPE to 8", () => {
+  it("maps the filesystem refusals to 8", () => {
     expect(exitCodeFor(new VetaError("ROOT_OVERLAP", "overlap"))).toBe(8);
     expect(exitCodeFor(new VetaError("PATH_ESCAPE", "escape"))).toBe(8);
+    expect(exitCodeFor(new VetaError("WORK_DIR_EXISTS", "taken"))).toBe(8);
   });
 
   it("maps unknown errors to 1", () => {
