@@ -50,6 +50,18 @@ describe("slugify", () => {
     expect(slugify("!!!", "1VqKUrxR2C8")).toBe("1vqkurxr2c8");
   });
 
+  it.each([
+    ["-wtIMTCHWuI", "v--wtimtchwui"],
+    ["_OBlgSz8sSM", "v-_oblgsz8ssm"],
+  ])(
+    "prefixes the %s fallback, since base64url ids may not start a dirName",
+    (externalId, expected) => {
+      const slug = slugify("", externalId);
+      expect(slug).toBe(expected);
+      expect(isValidDirName(slug)).toBe(true);
+    },
+  );
+
   it("replaces non-alphanumeric runs with a single hyphen", () => {
     expect(slugify("foo---bar   baz", "abc12345678")).toBe("foo-bar-baz");
   });
@@ -60,8 +72,16 @@ describe("slugify", () => {
  * The corpus below is the adversarial half; the explicit rejections are the guard rail.
  */
 describe("isValidDirName", () => {
-  it("accepts slugified titles from a hostile corpus", () => {
-    const externalId = "1VqKUrxR2C8";
+  it("accepts every title crossed with every externalId from a hostile corpus", () => {
+    const externalIds = [
+      "1VqKUrxR2C8", // ordinary YouTube id
+      "-wtIMTCHWuI", // base64url id opening with a hyphen
+      "_OBlgSz8sSM", // ... and with an underscore
+      "-_-_-_-_-_-", // nothing but separators
+      ".", // path components an id must never become
+      "..",
+      "id with spaces", // characters no dirName may keep
+    ];
     const titles = [
       "", // empty title -> externalId fallback
       ".", // path component that must never survive
@@ -82,10 +102,11 @@ describe("isValidDirName", () => {
     ];
 
     for (const title of titles) {
-      const slug = slugify(title, externalId);
-      expect(isValidDirName(slug), `invalid slug for ${JSON.stringify(title)}: ${slug}`).toBe(
-        true,
-      );
+      for (const externalId of externalIds) {
+        const slug = slugify(title, externalId);
+        const label = `${JSON.stringify(title)} / ${JSON.stringify(externalId)}`;
+        expect(isValidDirName(slug), `invalid slug for ${label}: ${slug}`).toBe(true);
+      }
     }
   });
 

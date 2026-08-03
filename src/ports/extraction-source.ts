@@ -10,7 +10,11 @@ export interface SourceIdentity {
 export type WorkDir = string & { readonly __brand: "WorkDir" };
 
 /**
- * Temporary bridge until StorePort owns work-directory validation and minting.
+ * Test-only WorkDir minting helper.
+ *
+ * Production code must obtain `WorkDir` values through {@link StorePort.openWorkDir}
+ * in `adapters/store/fs-store.ts`. Import `asWorkDir` only from `*.test.ts` files
+ * or the fs-store adapter — not from CLI, pipeline, or other production modules.
  */
 export function asWorkDir(path: string): WorkDir {
   return path as WorkDir;

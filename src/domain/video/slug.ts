@@ -109,6 +109,21 @@ function stripTrailingDotsAndSpaces(value: string): string {
 }
 
 /**
+ * Force a candidate name into the {@link isValidDirName} contract.
+ *
+ * The title pipeline already lands inside the contract, but the `externalId`
+ * fallback does not: YouTube ids are base64url, so roughly 3% of them open with
+ * `-` or `_`, which {@link VALID_DIR_NAME} rejects as a first character. The
+ * `v-` prefix is the same escape {@link escapeWindowsReserved} uses, and it
+ * keeps the id intact so two ids never collapse onto one directory.
+ */
+function forceValidDirName(value: string): string {
+  // characters outside the dirName alphabet collapse into a single hyphen
+  const cleaned = stripTrailingDotsAndSpaces(value.replace(/[^a-z0-9._-]+/g, "-"));
+  return isValidDirName(cleaned) ? cleaned : `v-${cleaned}`;
+}
+
+/**
  * Derive a filesystem-safe directory name from a video title.
  *
  * The title runs through the whole pipeline in order: fold accents, lowercase,
@@ -117,8 +132,8 @@ function stripTrailingDotsAndSpaces(value: string): string {
  *
  * @param title - Human-readable video title; may be empty or fully non-ASCII.
  * @param externalId - Durable video identity, used as the fallback name.
- * @returns A name satisfying {@link isValidDirName}, falling back to a lowercased
- * `externalId` when the title produces nothing usable.
+ * @returns A name that always satisfies {@link isValidDirName}, falling back to
+ * the `externalId` when the title produces nothing usable.
  */
 export function slugify(title: string, externalId: string): string {
   let slug = stripCombiningMarks(title).toLowerCase();
@@ -133,7 +148,7 @@ export function slugify(title: string, externalId: string): string {
     slug = externalId.toLowerCase();
   }
 
-  return slug;
+  return forceValidDirName(slug);
 }
 
 /**
