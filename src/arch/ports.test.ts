@@ -17,14 +17,8 @@ const PORTS_DIR = path.join(SRC, "ports");
 /** Where `asWorkDir` is declared; the declaration site is never an importer. */
 const AS_WORK_DIR_DECLARATION = "ports/extraction-source.ts";
 
-/** Sole allowed production minter once the store adapter exists (design DL6). */
+/** Sole allowed production minter: the adapter that owns the filesystem (design DL6). */
 const ALLOWED_AS_WORK_DIR_PRODUCTION = "adapters/store/fs-store.ts";
-
-/**
- * Temporary legacy production importers removed in Slice 5c (`cli/extract.ts`
- * migration onto `StorePort`).
- */
-const LEGACY_AS_WORK_DIR_IMPORTS = ["cli/extract.ts"] as const;
 
 function sourceFiles(): string[] {
   return readdirSync(SRC, { recursive: true, encoding: "utf8" })
@@ -81,16 +75,11 @@ describe("WorkDir minting policy", () => {
    * and a listed file that stopped importing is a stale entry to delete. Asserting
    * only "no violations" would pass even if the allowlist described nobody (DL6).
    */
-  it("confines asWorkDir to fs-store and tracked legacy files", () => {
-    const files = sourceFiles();
-    const importers = files.filter(
+  it("confines asWorkDir to the store adapter", () => {
+    const importers = sourceFiles().filter(
       (file) => file !== AS_WORK_DIR_DECLARATION && importsAsWorkDir(file),
     );
-    // fs-store.ts arrives in Slice 5b; until then its entry is a promise, not a fact
-    const expected = files.includes(ALLOWED_AS_WORK_DIR_PRODUCTION)
-      ? [ALLOWED_AS_WORK_DIR_PRODUCTION, ...LEGACY_AS_WORK_DIR_IMPORTS]
-      : [...LEGACY_AS_WORK_DIR_IMPORTS];
 
-    expect(importers.sort()).toEqual(expected.sort());
+    expect(importers).toEqual([ALLOWED_AS_WORK_DIR_PRODUCTION]);
   });
 });

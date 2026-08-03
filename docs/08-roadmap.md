@@ -1,7 +1,8 @@
 # 8. Roadmap — where we are
 
-**Next action:** Slice 5 — `StorePort` + run/resume domain + `FsStore`.
-Slice 4 (CLI shell with `yargs`) is implemented and awaiting merge.
+**Next action:** Slice 6 — the pipeline runner that actually resumes.
+Slice 5 (`StorePort`, run domain, `FsStore`, `extract` migration) is implemented
+and awaiting merge as the chained PRs 5a → 5b1 → 5b2 → 5c.
 
 This file is the living plan. Engram keeps the same picture under
 `veta/roadmap`. Prefer this document when you need to reorient; Engram is
@@ -14,9 +15,9 @@ backup across sessions.
 1. ~~Slice 2: port + yt-dlp adapter.~~
 2. ~~Slice 3: slug, exit-code map, minimal CLI → `transcript.md`.~~
 3. ~~Slice 4: CLI shell (`yargs`, completion, doctor).~~
-4. **Now:** StorePort / resume / safe `--force` reset (catalog PR-6).
-5. Later: pipeline runner that actually resumes mid-run (catalog PR-8).
-6. Later: progress UX, config persistence, prompt delivery.
+4. ~~Slice 5: StorePort, run domain, FsStore, `extract` on the port (catalog PR-6).~~
+5. **Now:** pipeline runner that actually resumes mid-run (catalog PR-8).
+6. Later: progress UX, prompt delivery.
 
 ---
 
@@ -71,12 +72,12 @@ resume maps to **PR-8**.
 | Caption track selection + `VetaError`                              | PR [#5](https://github.com/cmglezpdev/veta/pull/5)                                                  |
 | `ExtractionSourcePort` + yt-dlp adapter                            | PR [#7](https://github.com/cmglezpdev/veta/pull/7)                                                  |
 | Minimal CLI: slug + exit codes + `veta <url>` → `transcript.md`    | PR [#8](https://github.com/cmglezpdev/veta/pull/8)                                                  |
+| CLI shell: `yargs`, completion, `doctor`, `--lang`                 | PR [#10](https://github.com/cmglezpdev/veta/pull/10)                                                |
 
 
-Empty shells still on disk (no real implementation yet): `src/pipeline/`,
-`src/adapters/store/`, several `src/domain/{run,config,prompt}/`.
-Thin extract in `src/cli/extract.ts` writes files directly with `fs` — no
-`StorePort` yet. Slice 4 adds `src/cli/{cli-structure,completion,run}.ts`.
+Empty shells still on disk (no real implementation yet): `src/pipeline/` and
+`src/domain/prompt/`. `src/domain/config/` is gone for good — veta persists no
+config. Slice 5 fills `src/adapters/store/` and `src/domain/run/`.
 
 ---
 
@@ -148,14 +149,18 @@ delivery remain deferred.
 
 
 
-## Slice 5 — next PR (detail)
+## Slice 5 — code complete (detail)
 
 **Outcome:** persistence primitives so a run can be recorded, found again,
 resumed at the first incomplete step, and safely reset under `--force` —
 without yet owning the full pipeline orchestrator.
 
-Today `extract.ts` mkdirs + writes `transcript.md` with raw `fs`. After
-this slice, the filesystem contract lives behind `StorePort` / `FsStore`.
+`extract.ts` no longer imports `node:fs`: it opens a work directory, renames it
+once the title is known, and writes `transcript.md` through `StorePort`. The
+layout it produces is unchanged — flat `{dataDir}/{dirName}/`.
+
+Shipped as four chained PRs: 5a domain + port, 5b1 path/JSON primitives,
+5b2 `FsStore`, 5c `extract` migration.
 
 
 | Piece                         | Responsibility                                                                 |
@@ -177,13 +182,15 @@ enumerated artifact set inside a video work dir (never `rm -rf` the dir,
 never touches `outputDir`). Pipeline-level guarantees that `--force` only
 reaches store methods with a work dir under `dataDir` land with PR-8.
 
-**Out of scope for this PR:** pipeline `run-extraction` / `StepEvents`,
-progress renderers, config persistence, prompt delivery.
+**Out of scope for this slice:** pipeline `run-extraction` / `StepEvents`,
+progress renderers, prompt delivery. Persistent config was dropped outright —
+`dataDir` and language come from flags/env per invocation.
 
-**Commit typing:** likely `feat` (user-visible resume/force comes when
-wired) or `chore` if this PR ships store-only with no CLI behavior change.
-Prefer shipping store + a thin extract migration behind `StorePort` so the
-PR earns real behavior; call that in the PR title.
+**Known gap carried to Slice 6:** `extract` writes no `state.json`, so
+re-extracting a video whose package directory already exists fails with
+`WORK_DIR_EXISTS` instead of reusing it. Telling "the same video again" apart
+from "a different video with the same title" needs the identity that resume
+persists.
 
 **Parts catalog ref:** Engram `sdd/veta-v1/tasks` → PR-6 (T6.1–T6.6).
 
@@ -207,7 +214,7 @@ PR earns real behavior; call that in the PR title.
 - [x] Slice 1 — caption track selection
 - [x] Slice 2 — `ExtractionSourcePort` + yt-dlp adapter
 - [x] Slice 3 — slug + exit codes + minimal `veta <url>`
-- [ ] Slice 4 — CLI shell (`yargs`, completion, doctor, `--lang`) — code complete, merge pending
-- [ ] Slice 5 — `StorePort` + run/resume domain + `FsStore`
+- [x] Slice 4 — CLI shell (`yargs`, completion, doctor, `--lang`)
+- [ ] Slice 5 — `StorePort` + run/resume domain + `FsStore` — code complete, merge pending
 - [ ] Slice 6 — pipeline runner (resume orchestration, `--force` wiring)
-- [ ] Revisit config / prompt / progress UX against real usage
+- [ ] Revisit prompt / progress UX against real usage
