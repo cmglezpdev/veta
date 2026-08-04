@@ -1,8 +1,11 @@
 # 8. Roadmap — where we are
 
 **Next action:** Slice 6 — the pipeline runner that actually resumes.
-Slice 5 (`StorePort`, run domain, `FsStore`, `extract` migration) is implemented
-and awaiting merge as the chained PRs 5a → 5b1 → 5b2 → 5c.
+Slice 5 (`StorePort`, run domain, `FsStore`, `extract` migration) is on `main`.
+
+The release PR for `0.5.0` is open and deliberately unmerged: Slice 5 changed
+nothing a user can observe, so there is nothing to publish yet. It stays open
+and accumulates until Slice 6 makes resume real.
 
 This file is the living plan. Engram keeps the same picture under
 `veta/roadmap`. Prefer this document when you need to reorient; Engram is
@@ -39,8 +42,9 @@ doctor) **before** StorePort/resume so the command surface stabilizes first.
 | 1     | Choose the right caption track before fetching anything | **Done** — PR [#5](https://github.com/cmglezpdev/veta/pull/5), on `main` as of `v0.2.1` |
 | 2     | Talk to yt-dlp for real (port + adapter)                | **Done** — PR [#7](https://github.com/cmglezpdev/veta/pull/7), on `main`                |
 | 3     | Minimal CLI: URL → package folder + `transcript.md`     | **Done** — PR [#8](https://github.com/cmglezpdev/veta/pull/8), on `main`                |
-| 4     | CLI shell: `yargs`, completion, doctor, `--lang`        | **Done** (code complete; merge pending) — catalog PR-9                                  |
-| 5     | Persist run state; resume / safe reset primitives       | **Next** (catalog PR-6)                                                                 |
+| 4     | CLI shell: `yargs`, completion, doctor, `--lang`        | **Done** — PR [#10](https://github.com/cmglezpdev/veta/pull/10), on `main`              |
+| 5     | Persist run state; resume / safe reset primitives       | **Done** — PRs [#15](https://github.com/cmglezpdev/veta/pull/15)–[#18](https://github.com/cmglezpdev/veta/pull/18), on `main` |
+| 6     | Pipeline runner: real resume, `--force`                 | **Next** (catalog PR-8)                                                                 |
 
 
 **Still deferred** (after store + pipeline):
@@ -149,7 +153,7 @@ delivery remain deferred.
 
 
 
-## Slice 5 — code complete (detail)
+## Slice 5 — done (detail)
 
 **Outcome:** persistence primitives so a run can be recorded, found again,
 resumed at the first incomplete step, and safely reset under `--force` —
@@ -198,6 +202,60 @@ persists.
 
 
 
+## Slice 6 — next PR (detail)
+
+**Outcome:** the thing Slice 5 was built for — a run that survives being
+interrupted. Re-running `veta <url>` after a failure picks up where it stopped
+instead of starting over.
+
+Slice 5 left five store methods with no caller. This slice is what calls them.
+
+| Already on `main` | Still to write |
+| --- | --- |
+| `FsStore.saveRun` / `findRun` / `listRuns` / `rebuildIndex` / `resetWorkDir` | The runner that calls them |
+| `domain/run/resume.ts` → `firstIncompleteStep` (pure, tested) | Wiring it to the real steps |
+| `STEP_ORDER` — the five steps in order | Recording each one as it completes |
+
+**The four pieces:**
+
+1. **Write run state.** `saveRun` after each step completes, so `state.json`
+   records how far the run got. `extract` writes none today.
+2. **Resume from it.** `findRun(externalId)` → `firstIncompleteStep` → restart
+   there rather than at the beginning.
+3. **Close the 5c gap.** Re-extracting a video whose package directory exists
+   currently fails with `WORK_DIR_EXISTS`. With the identity in `state.json`,
+   "the same video again" reuses the directory while "a different video with the
+   same title" still refuses. A test in `src/cli/extract.test.ts` pins the
+   current refusal — it changes when this lands.
+4. **Wire `--force`.** `resetWorkDir` already deletes an allowlist and never the
+   directory; this slice adds the flag and the guarantee that `--force` only
+   ever reaches a work dir under `dataDir`.
+
+**Worth considering here:** `veta list` on top of `listRuns`, and a
+`-{externalId}` tiebreaker for real title collisions — `slugify` drops the id
+whenever a title exists, so two videos sharing a title share a directory name.
+
+**Debts inherited from Slice 5**, each documented in its merged PR:
+
+- `resolveWithin` never calls `realpath`, so a symlink planted inside `dataDir`
+  still escapes containment. The fix belongs in the `FsStore` constructor.
+- The `state.json`-before-`index.json` write order is commented and correct but
+  untested; proving it needs a double, and this repo bans them.
+- The `VetaErrorCode` list is hand-maintained in four places (the union,
+  `EXIT_CODES`, `ALL_CODES` in its test, and `vetaErrorCodeFromString`). Only
+  `EXIT_CODES` is compiler-enforced.
+- No `--data-dir` / `--output-dir` flags — only `VETA_DATA_DIR` and `--lang`.
+
+**Commit typing:** this one earns `feat`. It is the first slice since 0.4.1 that
+changes what a user can do.
+
+**Parts catalog ref:** Engram `sdd/veta-v1/tasks` → PR-8. Full handoff in Engram
+under `sdd/route-b-slice-6/handoff`.
+
+---
+
+
+
 ## Conventions that still apply
 
 - Strict TDD, vitest, **zero doubles** (fake yt-dlp script, real temp dirs).
@@ -215,6 +273,6 @@ persists.
 - [x] Slice 2 — `ExtractionSourcePort` + yt-dlp adapter
 - [x] Slice 3 — slug + exit codes + minimal `veta <url>`
 - [x] Slice 4 — CLI shell (`yargs`, completion, doctor, `--lang`)
-- [ ] Slice 5 — `StorePort` + run/resume domain + `FsStore` — code complete, merge pending
+- [x] Slice 5 — `StorePort` + run/resume domain + `FsStore`
 - [ ] Slice 6 — pipeline runner (resume orchestration, `--force` wiring)
 - [ ] Revisit prompt / progress UX against real usage
