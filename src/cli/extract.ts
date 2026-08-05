@@ -1,9 +1,4 @@
-import path from "node:path";
-import { assignChapters } from "../domain/transcript/chapters.ts";
-import { renderTranscript } from "../domain/transcript/render.ts";
-import { segmentParagraphs } from "../domain/transcript/segment.ts";
-import { slugify } from "../domain/video/slug.ts";
-import { selectTrack } from "../domain/video/track-selection.ts";
+import { runExtraction } from "../pipeline/run-extraction.ts";
 import type { ExtractionSourcePort } from "../ports/extraction-source.ts";
 import type { StorePort } from "../ports/store.ts";
 
@@ -13,16 +8,13 @@ export type ExtractOptions = {
 };
 
 /**
- * Thin Route B extract path: URL in, `transcript.md` out.
+ * The `veta extract` command, in CLI terms: a URL in, a path to print out.
  *
- * Wires the track selector, the extraction source, and the pure normalization
- * pipeline. Every directory and file goes through the store, so this function
- * never touches `node:fs` and never learns where the data directory is — that
- * belongs to whoever constructs the store.
- *
- * No run state is written. Resume arrives with the pipeline runner; until then
- * there is nothing to resume from, and a `state.json` here would only be a
- * promise veta does not yet keep.
+ * Orchestration moved to `pipeline/run-extraction.ts` once runs began keeping
+ * state — a command that also owned the step sequence would be the only place
+ * to hang resume off, and resume is not a property of the CLI. What is left
+ * here is the translation: the runner speaks in run records, the CLI prints
+ * paths.
  */
 export async function extract(
   input: string,
@@ -30,30 +22,9 @@ export async function extract(
   store: StorePort,
   options: ExtractOptions = {},
 ): Promise<string> {
-  const preferredLang = options.preferredLang ?? null;
-  const identity = await source.identify(input);
+  const { transcriptPath } = await runExtraction(input, source, store, {
+    preferredLang: options.preferredLang ?? null,
+  });
 
-  // The title lives in the metadata, which yt-dlp writes *into* the package
-  // directory — so the directory has to exist under a provisional name first.
-  const interimSlug = slugify("", identity.externalId);
-  let workDir = await store.openWorkDir(interimSlug);
-
-  const { metadata } = await source.fetchMetadata(identity, workDir);
-
-  const finalSlug = slugify(metadata.title, identity.externalId);
-  if (finalSlug !== interimSlug) {
-    workDir = await store.renameWorkDir(workDir, finalSlug);
-  }
-
-  const { track } = selectTrack(metadata.captionTracks, metadata.originalLanguage, preferredLang);
-  const { document } = await source.fetchCaptions(identity, track, workDir);
-
-  const chaptered = assignChapters(document.cues, metadata.chapters);
-  const paragraphs = segmentParagraphs(chaptered);
-  const markdown = renderTranscript(metadata, paragraphs);
-
-  const artifact = await store.writeArtifact(workDir, "transcript.md", markdown);
-
-  // Composition, not I/O: the caller wants a path it can print.
-  return path.join(workDir, artifact.relPath);
+  return transcriptPath;
 }
