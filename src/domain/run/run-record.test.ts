@@ -6,6 +6,7 @@ import {
   type RunRecord,
   type RunSummary,
   type StepStatus,
+  withStep,
 } from "./run-record.ts";
 import { STEP_ORDER } from "./steps.ts";
 
@@ -48,6 +49,36 @@ describe("RunRecord step statuses", () => {
     for (const step of STEP_ORDER) {
       expect(VALID_STATUSES).toContain(record.steps[step]);
     }
+  });
+});
+
+describe("withStep", () => {
+  it("marks the named step and leaves the others alone", () => {
+    const record = freshRecord({ createdAt: "2026-01-01T00:00:00.000Z" });
+
+    const advanced = withStep(record, "captions_downloaded", "complete", "2026-01-02T00:00:00.000Z");
+
+    expect(advanced.steps.captions_downloaded).toBe("complete");
+    expect(advanced.steps.metadata_fetched).toBe("pending");
+    expect(advanced.steps.transcript_normalized).toBe("pending");
+  });
+
+  it("moves updatedAt forward without disturbing createdAt", () => {
+    const record = freshRecord({ createdAt: "2026-01-01T00:00:00.000Z" });
+
+    const advanced = withStep(record, "metadata_fetched", "complete", "2026-01-02T00:00:00.000Z");
+
+    expect(advanced.createdAt).toBe("2026-01-01T00:00:00.000Z");
+    expect(advanced.updatedAt).toBe("2026-01-02T00:00:00.000Z");
+  });
+
+  it("returns a new record rather than mutating the one it was given", () => {
+    const record = freshRecord({ createdAt: "2026-01-01T00:00:00.000Z" });
+
+    withStep(record, "metadata_fetched", "complete", "2026-01-02T00:00:00.000Z");
+
+    expect(record.steps.metadata_fetched).toBe("pending");
+    expect(record.updatedAt).toBe("2026-01-01T00:00:00.000Z");
   });
 });
 

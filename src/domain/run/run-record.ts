@@ -54,6 +54,26 @@ export function createRunRecord(input: CreateRunRecordInput): RunRecord {
 }
 
 /**
+ * Record that one step reached a terminal status, as of `updatedAt`.
+ *
+ * The runner advances a record step by step and hands each version to the
+ * store, so this stays pure and copying: the caller keeps the record it passed
+ * in, which is what a failed save has to fall back on.
+ */
+export function withStep(
+  record: RunRecord,
+  step: StepName,
+  status: StepStatus,
+  updatedAt: string,
+): RunRecord {
+  return {
+    ...record,
+    steps: { ...record.steps, [step]: status },
+    updatedAt,
+  };
+}
+
+/**
  * Parse persisted run state from untrusted JSON.
  *
  * @throws VetaError `PAYLOAD_SHAPE_CHANGED` when the payload is not v1 shape.

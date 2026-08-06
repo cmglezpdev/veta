@@ -109,16 +109,22 @@ describe("extract", () => {
 
     await extract("1VqKUrxR2C8", source, newStore());
 
-    expect(await readdir(dataDir)).toEqual(["building-opencode-with-dax-raad"]);
+    // Directories only: `index.json` is the catalog, and it belongs at the data
+    // root. What this guards is that no `videos/` level appeared to hold the
+    // package.
+    const entries = await readdir(dataDir, { withFileTypes: true });
+    const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+
+    expect(directories).toEqual(["building-opencode-with-dax-raad"]);
   });
 
-  it("persists no run state, because this path has no resume to support yet", async () => {
+  it("persists run state, because the runner behind it now records every step", async () => {
     const source = new YtDlpExtractionSource();
 
     await extract("1VqKUrxR2C8", source, newStore());
 
-    expect(await readdir(dataDir)).not.toContain("index.json");
-    expect(await readdir(path.join(dataDir, "building-opencode-with-dax-raad"))).not.toContain(
+    expect(await readdir(dataDir)).toContain("index.json");
+    expect(await readdir(path.join(dataDir, "building-opencode-with-dax-raad"))).toContain(
       "state.json",
     );
   });
