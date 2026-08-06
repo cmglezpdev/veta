@@ -49,5 +49,18 @@ export interface ExtractionSourcePort {
     track: CaptionTrack,
     workDir: WorkDir,
   ): Promise<{ readonly document: CaptionDocument; readonly raw: RawArtifact }>;
+  /**
+   * Read back what an earlier `fetchMetadata` left in the work dir, without
+   * the network. Null means missing or unusable — the caller falls back to
+   * fetching; it never means "the video has no metadata".
+   */
+  loadMetadata(
+    workDir: WorkDir,
+  ): Promise<{ readonly metadata: VideoMetadata; readonly raw: RawArtifact } | null>;
+  /** Same contract as {@link loadMetadata}, for one caption track's raw file. */
+  loadCaptions(
+    track: CaptionTrack,
+    workDir: WorkDir,
+  ): Promise<{ readonly document: CaptionDocument; readonly raw: RawArtifact } | null>;
   health(): Promise<SourceHealth>;
 }

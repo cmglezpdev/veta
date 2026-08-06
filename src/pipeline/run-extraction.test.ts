@@ -24,9 +24,26 @@ let dataDir: string;
 let binary: string;
 let previousBinaryPath: string | undefined;
 let previousCaptionsFail: string | undefined;
+let previousInfoFail: string | undefined;
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`;
+}
+
+/**
+ * Replace the fake yt-dlp with one that still resolves (`--version` answers)
+ * but fails every fetch. A plain `exit 1` is not enough: a binary that flunks
+ * its version check is discarded in favour of whatever `PATH` holds, and on a
+ * machine with a real yt-dlp the test would quietly hit the network.
+ */
+async function sabotageFetches(): Promise<void> {
+  const body = `#!/bin/sh
+case "$*" in *--version*) printf '%s\\n' '2026.07.31'; exit 0 ;; esac
+exit 1
+`;
+  await writeFile(binary, body, "utf8");
+  await chmod(binary, 0o755);
+  resetBinaryCache();
 }
 
 beforeEach(async () => {
@@ -35,9 +52,11 @@ beforeEach(async () => {
   binary = path.join(root, "yt-dlp");
   previousBinaryPath = process.env["VETA_YTDLP_PATH"];
   previousCaptionsFail = process.env["VETA_FAKE_CAPTIONS_FAIL"];
+  previousInfoFail = process.env["VETA_FAKE_INFO_FAIL"];
 
-  // A real executable, not a double. `VETA_FAKE_CAPTIONS_FAIL` lets a test make
-  // the caption fetch fail the way the network does — after metadata succeeded.
+  // A real executable, not a double. `VETA_FAKE_CAPTIONS_FAIL` and
+  // `VETA_FAKE_INFO_FAIL` let a test make either fetch fail the way the
+  // network does, without touching what is already on disk.
   const body = `#!/bin/sh
 set -eu
 output=''
@@ -55,6 +74,10 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 if [ "$write_info" -eq 1 ]; then
+  if [ -n "\${VETA_FAKE_INFO_FAIL:-}" ]; then
+    printf '%s\\n' 'ERROR: unable to download webpage' >&2
+    exit 1
+  fi
   cp ${shellQuote(INFO_FIXTURE)} "$output.info.json"
 fi
 if [ "$write_captions" -eq 1 ]; then
@@ -69,6 +92,7 @@ fi
   await chmod(binary, 0o755);
   process.env["VETA_YTDLP_PATH"] = binary;
   delete process.env["VETA_FAKE_CAPTIONS_FAIL"];
+  delete process.env["VETA_FAKE_INFO_FAIL"];
   resetBinaryCache();
 });
 
@@ -77,6 +101,8 @@ afterEach(async () => {
   else process.env["VETA_YTDLP_PATH"] = previousBinaryPath;
   if (previousCaptionsFail === undefined) delete process.env["VETA_FAKE_CAPTIONS_FAIL"];
   else process.env["VETA_FAKE_CAPTIONS_FAIL"] = previousCaptionsFail;
+  if (previousInfoFail === undefined) delete process.env["VETA_FAKE_INFO_FAIL"];
+  else process.env["VETA_FAKE_INFO_FAIL"] = previousInfoFail;
   resetBinaryCache();
   await rm(root, { force: true, recursive: true });
 });
@@ -227,11 +253,9 @@ describe("runExtraction resume", () => {
       now: tickingClock(),
     });
 
-    // From here on any yt-dlp invocation fails, so a second success can only
+    // From here on any yt-dlp fetch fails, so a second success can only
     // mean the runner answered from what is already on disk.
-    await writeFile(binary, "#!/bin/sh\nexit 1\n", "utf8");
-    await chmod(binary, 0o755);
-    resetBinaryCache();
+    await sabotageFetches();
 
     const second = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
       now: tickingClock("2026-02-02"),
@@ -241,11 +265,15 @@ describe("runExtraction resume", () => {
     expect(second.record.createdAt).toBe("2026-01-01T00:00:00.000Z");
   });
 
-  it("rebuilds a finished package whose transcript was deleted", async () => {
+  it("rebuilds a deleted transcript from the raw files without touching the source", async () => {
     const first = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
       now: tickingClock(),
     });
     await rm(first.transcriptPath);
+
+    // The raw files are still in the package, so the rebuild must not need
+    // yt-dlp at all — prove it by making every fetch fail.
+    await sabotageFetches();
 
     const second = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
       now: tickingClock("2026-02-02"),
@@ -253,6 +281,25 @@ describe("runExtraction resume", () => {
 
     expect(second.transcriptPath).toBe(first.transcriptPath);
     expect((await readFile(second.transcriptPath, "utf8")).length).toBeGreaterThan(0);
+  });
+
+  it("resumes without re-fetching the metadata a previous run already downloaded", async () => {
+    process.env["VETA_FAKE_CAPTIONS_FAIL"] = "1";
+    await expect(
+      runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), { now: tickingClock() }),
+    ).rejects.toThrow();
+
+    // raw/info.json survived the failed run; a resume that insisted on
+    // re-downloading it would now die before ever reaching the captions.
+    delete process.env["VETA_FAKE_CAPTIONS_FAIL"];
+    process.env["VETA_FAKE_INFO_FAIL"] = "1";
+
+    const result = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock("2026-02-02"),
+    });
+
+    expect(result.transcriptPath).toBe(path.join(dataDir, PACKAGE_DIR, "transcript.md"));
+    expect((await readState()).steps.captions_downloaded).toBe("complete");
   });
 
   it("starts over under force even when the run finished", async () => {

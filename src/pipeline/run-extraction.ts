@@ -42,11 +42,10 @@ export type RunExtractionResult = {
  * Every step that finishes is written to the store before the next one starts,
  * so a run that dies mid-flight leaves behind an accurate account of itself
  * rather than nothing. Re-running the same video reads that account back:
- * a finished run answers from disk without touching the source, an unfinished
- * one re-runs inside its own directory instead of refusing with
- * `WORK_DIR_EXISTS`. What resume does not yet do is skip a download the
- * previous run completed — that needs the source to read its raw files back,
- * which is the next slice.
+ * a finished run answers from disk without touching the source, and an
+ * unfinished one resumes inside its own directory — raw files the previous
+ * run already downloaded are loaded back instead of fetched again, so only
+ * the work that never happened costs network.
  *
  * A record found for this id also settles the collision question: the same
  * video reuses its directory, while a different video whose title slugs to a
@@ -89,7 +88,10 @@ export async function runExtraction(
     if (force) {
       await store.resetWorkDir(workDir);
     }
-    ({ metadata } = await source.fetchMetadata(identity, workDir));
+    // After a reset there is nothing to load; otherwise disk beats network.
+    const loaded = force ? null : await source.loadMetadata(workDir);
+    metadata =
+      loaded !== null ? loaded.metadata : (await source.fetchMetadata(identity, workDir)).metadata;
   } else {
     // The title lives in the metadata, which yt-dlp writes *into* the package
     // directory — so the directory has to exist under a provisional name first.
@@ -124,7 +126,11 @@ export async function runExtraction(
   });
   await store.saveRun(record);
 
-  const { document } = await source.fetchCaptions(identity, track, workDir);
+  const loadedCaptions = previous !== null && !force ? await source.loadCaptions(track, workDir) : null;
+  const document =
+    loadedCaptions !== null
+      ? loadedCaptions.document
+      : (await source.fetchCaptions(identity, track, workDir)).document;
   record = withStep(record, "captions_downloaded", "complete", now());
   await store.saveRun(record);
 
