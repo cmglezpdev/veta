@@ -1,0 +1,84 @@
+import { describe, expect, it } from "vitest";
+import type { VideoMetadata } from "../video/metadata.ts";
+import { buildNotesPrompt } from "./build-prompt.ts";
+
+const BASE: VideoMetadata = {
+  id: "vid123",
+  title: "Building OpenCode with Dax Raad",
+  durationSec: 4893, // 1:21:33
+  uploader: "Some Channel",
+  thumbnailUrl: null,
+  canonicalUrl: "https://www.youtube.com/watch?v=vid123",
+  chapters: [
+    { title: "Intro", startSec: 0, endSec: 120 },
+    { title: "Architecture", startSec: 205, endSec: 900 },
+  ],
+  originalLanguage: "en",
+  captionTracks: [],
+};
+
+describe("buildNotesPrompt", () => {
+  it("names the video and where it came from", () => {
+    const prompt = buildNotesPrompt(BASE, "en");
+
+    expect(prompt).toContain("Building OpenCode with Dax Raad");
+    expect(prompt).toContain("https://www.youtube.com/watch?v=vid123");
+    expect(prompt).toContain("1:21:33");
+    expect(prompt).toContain("Some Channel");
+  });
+
+  it("lists the chapters with their start times", () => {
+    const prompt = buildNotesPrompt(BASE, "en");
+
+    expect(prompt).toContain("Intro");
+    expect(prompt).toContain("0:00");
+    expect(prompt).toContain("Architecture");
+    expect(prompt).toContain("3:25");
+  });
+
+  it("omits the URL line when the canonical URL is unknown", () => {
+    const prompt = buildNotesPrompt({ ...BASE, canonicalUrl: null }, "en");
+
+    expect(prompt).not.toContain("- URL:");
+    // The rest of the context block survives the missing field.
+    expect(prompt).toContain("Building OpenCode with Dax Raad");
+  });
+
+  it("omits the uploader line when the source did not name one", () => {
+    const prompt = buildNotesPrompt({ ...BASE, uploader: null }, "en");
+
+    expect(prompt).not.toContain("- Uploader:");
+  });
+
+  it("omits the chapter section entirely when the video has no chapters", () => {
+    const prompt = buildNotesPrompt({ ...BASE, chapters: [] }, "en");
+
+    expect(prompt).not.toContain("Chapters");
+  });
+
+  it("pins the notes language to the transcript's language when known", () => {
+    const prompt = buildNotesPrompt(BASE, "es");
+
+    expect(prompt).toContain('Write all notes in "es"');
+  });
+
+  it("falls back to the transcript's own language when none was recorded", () => {
+    const prompt = buildNotesPrompt(BASE, null);
+
+    expect(prompt).toContain("the same language the transcript is written in");
+  });
+
+  it("instructs the assistant on the expected notes layout", () => {
+    const prompt = buildNotesPrompt(BASE, "en");
+
+    expect(prompt).toContain("transcript.md");
+    expect(prompt).toContain("notes/README.md");
+    expect(prompt).toContain("mermaid");
+    // Every key claim must carry a timestamp deep link back into the video.
+    expect(prompt).toContain("timestamp deep link");
+  });
+
+  it("is deterministic: the same input renders the identical prompt", () => {
+    expect(buildNotesPrompt(BASE, "es")).toBe(buildNotesPrompt(BASE, "es"));
+  });
+});

@@ -160,8 +160,8 @@ describe("runExtraction", () => {
     expect(record.steps.transcript_normalized).toBe("complete");
   });
 
-  it("marks the steps veta does not implement yet as skipped, not pending", async () => {
-    // Left pending, these two would make `firstIncompleteStep` point at work
+  it("marks the step veta does not implement yet as skipped, not pending", async () => {
+    // Left pending, this step would make `firstIncompleteStep` point at work
     // that never happens, and no run would ever reach a finished state.
     await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
       now: tickingClock(),
@@ -169,7 +169,6 @@ describe("runExtraction", () => {
 
     const record = await readState();
     expect(record.steps.thumbnail_downloaded).toBe("skipped");
-    expect(record.steps.prompt_generated).toBe("skipped");
   });
 
   it("records the caption track key a resume would have to ask for again", async () => {
@@ -222,6 +221,61 @@ describe("runExtraction", () => {
 
     expect(result.transcriptPath.endsWith("transcript.md")).toBe(true);
     expect((await readState()).selectedTrack).toBe("en");
+  });
+});
+
+describe("runExtraction prompt generation", () => {
+  it("writes prompt.md beside the transcript and records the step as complete", async () => {
+    const result = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+    });
+
+    expect(result.promptPath).toBe(path.join(dataDir, PACKAGE_DIR, "prompt.md"));
+
+    const prompt = await readFile(result.promptPath!, "utf8");
+    expect(prompt).toContain("Building OpenCode with Dax Raad");
+    expect(prompt).toContain("notes/README.md");
+
+    expect((await readState()).steps.prompt_generated).toBe("complete");
+  });
+
+  it("returns the existing prompt when a finished run answers from disk", async () => {
+    const first = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+    });
+    await sabotageFetches();
+
+    const second = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock("2026-02-02"),
+    });
+
+    expect(second.promptPath).toBe(first.promptPath);
+  });
+
+  it("leaves an old skipped-prompt package alone instead of regenerating it", async () => {
+    // Packages written before this slice carry prompt_generated: "skipped" and
+    // no prompt.md. They are finished runs: the short-circuit must answer with
+    // a null prompt path, not quietly rebuild the package.
+    await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+    });
+
+    const statePath = path.join(dataDir, PACKAGE_DIR, "state.json");
+    const legacy = JSON.parse(await readFile(statePath, "utf8"));
+    legacy.steps.prompt_generated = "skipped";
+    await writeFile(statePath, JSON.stringify(legacy), "utf8");
+    await rm(path.join(dataDir, PACKAGE_DIR, "prompt.md"));
+
+    // Any attempt to rebuild would need the source, so make every fetch fail.
+    await sabotageFetches();
+
+    const result = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock("2026-02-02"),
+    });
+
+    expect(result.promptPath).toBeNull();
+    expect(result.transcriptPath).toBe(path.join(dataDir, PACKAGE_DIR, "transcript.md"));
+    expect(await readdir(path.join(dataDir, PACKAGE_DIR))).not.toContain("prompt.md");
   });
 });
 

@@ -79,7 +79,7 @@ function newStore(): FsStore {
 describe("extract", () => {
   it("writes a markdown transcript under a slugged package directory", async () => {
     const source = new YtDlpExtractionSource();
-    const transcriptPath = await extract("1VqKUrxR2C8", source, newStore());
+    const { transcriptPath } = await extract("1VqKUrxR2C8", source, newStore());
 
     expect(transcriptPath).toBe(
       path.join(dataDir, "building-opencode-with-dax-raad", "transcript.md"),
@@ -91,9 +91,17 @@ describe("extract", () => {
     expect(markdown).toContain("## 1. Intro");
   });
 
+  it("hands back the generated prompt beside the transcript", async () => {
+    const source = new YtDlpExtractionSource();
+    const { promptPath } = await extract("1VqKUrxR2C8", source, newStore());
+
+    expect(promptPath).toBe(path.join(dataDir, "building-opencode-with-dax-raad", "prompt.md"));
+    expect(await readFile(promptPath!, "utf8")).toContain("notes/README.md");
+  });
+
   it("accepts a full YouTube URL", async () => {
     const source = new YtDlpExtractionSource();
-    const transcriptPath = await extract(
+    const { transcriptPath } = await extract(
       "https://www.youtube.com/watch?v=1VqKUrxR2C8",
       source,
       newStore(),
@@ -145,7 +153,7 @@ describe("extract", () => {
 
     const second = await extract("1VqKUrxR2C8", source, newStore());
 
-    expect(second).toBe(first);
+    expect(second.transcriptPath).toBe(first.transcriptPath);
   });
 
   it("still refuses when a different video resolves to the same package name", async () => {

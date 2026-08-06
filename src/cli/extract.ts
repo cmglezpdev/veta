@@ -9,8 +9,15 @@ export type ExtractOptions = {
   readonly force?: boolean;
 };
 
+export type ExtractResult = {
+  /** Absolute path to the rendered transcript, for the caller to print. */
+  readonly transcriptPath: string;
+  /** Absolute path to the notes prompt, or `null` for pre-prompt packages. */
+  readonly promptPath: string | null;
+};
+
 /**
- * The `veta extract` command, in CLI terms: a URL in, a path to print out.
+ * The `veta extract` command, in CLI terms: a URL in, paths to act on out.
  *
  * Orchestration moved to `pipeline/run-extraction.ts` once runs began keeping
  * state — a command that also owned the step sequence would be the only place
@@ -23,11 +30,11 @@ export async function extract(
   source: ExtractionSourcePort,
   store: StorePort,
   options: ExtractOptions = {},
-): Promise<string> {
-  const { transcriptPath } = await runExtraction(input, source, store, {
+): Promise<ExtractResult> {
+  const { transcriptPath, promptPath } = await runExtraction(input, source, store, {
     preferredLang: options.preferredLang ?? null,
     force: options.force ?? false,
   });
 
-  return transcriptPath;
+  return { transcriptPath, promptPath };
 }
