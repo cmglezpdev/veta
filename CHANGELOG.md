@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.0](https://github.com/cmglezpdev/veta/compare/veta-v0.4.1...veta-v0.5.0) (2026-08-04)
+
+
+### Features
+
+* **cli:** migrate extract to StorePort ([#18](https://github.com/cmglezpdev/veta/issues/18)) ([b684cc6](https://github.com/cmglezpdev/veta/commit/b684cc62409de84de3a62c21668adf7a1b08b139))
+* **store:** add path containment and atomic JSON primitives ([#16](https://github.com/cmglezpdev/veta/issues/16)) ([e2e6aec](https://github.com/cmglezpdev/veta/commit/e2e6aec5e1fd047d1f14cc340edebc33ff386c56))
+* **store:** add run domain, StorePort, and valid slug fallback ([#15](https://github.com/cmglezpdev/veta/issues/15)) ([1a2d0ed](https://github.com/cmglezpdev/veta/commit/1a2d0edcb761e7b291801cf9d642b791d3027ab9))
+* **store:** implement FsStore with flat layout and atomic persistence ([#17](https://github.com/cmglezpdev/veta/issues/17)) ([05b373c](https://github.com/cmglezpdev/veta/commit/05b373ceb66b76998352021c3f0b09cdb5ee9c1e))
+
+
+### Documentation
+
+* **roadmap:** record slice 5 as merged and scope slice 6 ([#21](https://github.com/cmglezpdev/veta/issues/21)) ([910d39e](https://github.com/cmglezpdev/veta/commit/910d39ebf90f0e99a9b4eac11f431f5dd8557f5d))
+
 ## [0.4.1](https://github.com/cmglezpdev/veta/compare/veta-v0.4.0...veta-v0.4.1) (2026-08-02)
 
 
