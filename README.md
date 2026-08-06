@@ -105,11 +105,11 @@ Point at a specific binary with `VETA_YTDLP_PATH` if needed.
 ## Status (v0.4)
 
 **Works today:** pick the right caption track, download via yt-dlp, normalize
-into chaptered Markdown with deep links, ship as `@cmglezpdev/veta`.
+into chaptered Markdown with deep links, resume interrupted runs and re-run
+safely (`--force` to start over), ship as `@cmglezpdev/veta`.
 
-**Not yet:** resume / safe re-runs, progress UI, config persistence, prompt
-hydration, or launching an AI agent. Those are next — see
-[docs/08-roadmap.md](docs/08-roadmap.md).
+**Not yet:** progress UI, config persistence, prompt hydration, or launching
+an AI agent. Those are next — see [docs/08-roadmap.md](docs/08-roadmap.md).
 
 veta will never generate the notes itself. It extracts, cleans, and hands off.
 
