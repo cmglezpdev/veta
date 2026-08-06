@@ -86,9 +86,9 @@ function newStore(): FsStore {
 }
 
 /** A clock that never repeats, so `updatedAt` proves each save was its own write. */
-function tickingClock(): () => string {
+function tickingClock(day = "2026-01-01"): () => string {
   let tick = 0;
-  return () => `2026-01-01T00:00:${String(tick++).padStart(2, "0")}.000Z`;
+  return () => `${day}T00:00:${String(tick++).padStart(2, "0")}.000Z`;
 }
 
 async function readState(dirName = PACKAGE_DIR): Promise<RunRecord> {
@@ -196,5 +196,83 @@ describe("runExtraction", () => {
 
     expect(result.transcriptPath.endsWith("transcript.md")).toBe(true);
     expect((await readState()).selectedTrack).toBe("en");
+  });
+});
+
+describe("runExtraction resume", () => {
+  it("resumes into the same package after captions failed mid-run", async () => {
+    process.env["VETA_FAKE_CAPTIONS_FAIL"] = "1";
+    await expect(
+      runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), { now: tickingClock() }),
+    ).rejects.toThrow();
+
+    delete process.env["VETA_FAKE_CAPTIONS_FAIL"];
+    const result = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock("2026-02-02"),
+    });
+
+    expect(result.transcriptPath).toBe(path.join(dataDir, PACKAGE_DIR, "transcript.md"));
+    expect((await readdir(dataDir)).sort()).toEqual([PACKAGE_DIR, "index.json"]);
+
+    const record = await readState();
+    expect(record.steps.captions_downloaded).toBe("complete");
+    expect(record.steps.transcript_normalized).toBe("complete");
+    // The run kept its birth date; only the progress stamps moved.
+    expect(record.createdAt).toBe("2026-01-01T00:00:00.000Z");
+    expect(record.updatedAt.startsWith("2026-02-02")).toBe(true);
+  });
+
+  it("returns the finished transcript without invoking the source again", async () => {
+    const first = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+    });
+
+    // From here on any yt-dlp invocation fails, so a second success can only
+    // mean the runner answered from what is already on disk.
+    await writeFile(binary, "#!/bin/sh\nexit 1\n", "utf8");
+    await chmod(binary, 0o755);
+    resetBinaryCache();
+
+    const second = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock("2026-02-02"),
+    });
+
+    expect(second.transcriptPath).toBe(first.transcriptPath);
+    expect(second.record.createdAt).toBe("2026-01-01T00:00:00.000Z");
+  });
+
+  it("rebuilds a finished package whose transcript was deleted", async () => {
+    const first = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+    });
+    await rm(first.transcriptPath);
+
+    const second = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock("2026-02-02"),
+    });
+
+    expect(second.transcriptPath).toBe(first.transcriptPath);
+    expect((await readFile(second.transcriptPath, "utf8")).length).toBeGreaterThan(0);
+  });
+
+  it("starts over under force even when the run finished", async () => {
+    await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+    });
+    // A file veta never writes must survive the reset; raw/ must not.
+    await writeFile(path.join(dataDir, PACKAGE_DIR, "notes.txt"), "mine", "utf8");
+
+    await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      force: true,
+      now: tickingClock("2027-03-03"),
+    });
+
+    const record = await readState();
+    // A forced run disowns the old record instead of inheriting its birth date.
+    expect(record.createdAt).toBe("2027-03-03T00:00:00.000Z");
+    expect(await readdir(path.join(dataDir, PACKAGE_DIR))).toContain("notes.txt");
+    expect(await readFile(path.join(dataDir, PACKAGE_DIR, "transcript.md"), "utf8")).toContain(
+      "Building OpenCode",
+    );
   });
 });

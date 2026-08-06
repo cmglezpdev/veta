@@ -5,6 +5,8 @@ import type { StorePort } from "../ports/store.ts";
 export type ExtractOptions = {
   /** `--lang` equivalent; null runs the FR-4 automatic rule. */
   readonly preferredLang?: string | null;
+  /** `--force` equivalent: discard prior progress and re-extract. */
+  readonly force?: boolean;
 };
 
 /**
@@ -24,6 +26,7 @@ export async function extract(
 ): Promise<string> {
   const { transcriptPath } = await runExtraction(input, source, store, {
     preferredLang: options.preferredLang ?? null,
+    force: options.force ?? false,
   });
 
   return transcriptPath;
