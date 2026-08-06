@@ -170,4 +170,65 @@ describe("YtDlpExtractionSource", () => {
 
     await expect(source.fetchThumbnail(metadata, workDir)).resolves.toBeNull();
   });
+
+  it("loads metadata back from the raw file a fetch left behind", async () => {
+    const source = new YtDlpExtractionSource();
+    const workDir = asWorkDir(path.join(root, "work-load"));
+    const identity = await source.identify("1VqKUrxR2C8");
+    const fetched = await source.fetchMetadata(identity, workDir);
+
+    const loaded = await source.loadMetadata(workDir);
+
+    expect(loaded?.metadata).toEqual(fetched.metadata);
+    expect(loaded?.raw).toEqual(fetched.raw);
+  });
+
+  it("returns null instead of guessing when there is no raw metadata", async () => {
+    const source = new YtDlpExtractionSource();
+    const workDir = asWorkDir(path.join(root, "work-empty"));
+
+    await expect(source.loadMetadata(workDir)).resolves.toBeNull();
+  });
+
+  it("loads captions back from the raw file a fetch left behind", async () => {
+    const source = new YtDlpExtractionSource();
+    const workDir = asWorkDir(path.join(root, "work-load-captions"));
+    const identity = await source.identify("1VqKUrxR2C8");
+    const track: CaptionTrack = {
+      sourceKey: "en",
+      baseLanguage: "en",
+      kind: "asr",
+      displayName: "English",
+      isOriginalMarker: false,
+      isTranslation: false,
+    };
+    const fetched = await source.fetchCaptions(identity, track, workDir);
+
+    const loaded = await source.loadCaptions(track, workDir);
+
+    expect(loaded?.document).toEqual(fetched.document);
+    expect(loaded?.raw).toEqual(fetched.raw);
+  });
+
+  it("returns null for a track never fetched and for a corrupt raw file", async () => {
+    const source = new YtDlpExtractionSource();
+    const workDir = asWorkDir(path.join(root, "work-load-miss"));
+    const identity = await source.identify("1VqKUrxR2C8");
+    const track: CaptionTrack = {
+      sourceKey: "en",
+      baseLanguage: "en",
+      kind: "asr",
+      displayName: "English",
+      isOriginalMarker: false,
+      isTranslation: false,
+    };
+    await source.fetchCaptions(identity, track, workDir);
+
+    // A track whose raw file was never written has nothing to load.
+    await expect(source.loadCaptions({ ...track, sourceKey: "fr" }, workDir)).resolves.toBeNull();
+
+    // A truncated download is not a document; the caller must re-fetch.
+    await writeFile(path.join(workDir, "raw", "captions.en.json3"), '{"events": [', "utf8");
+    await expect(source.loadCaptions(track, workDir)).resolves.toBeNull();
+  });
 });

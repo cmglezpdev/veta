@@ -16,6 +16,12 @@ import { parseJson3 } from "./json3.ts";
 
 const SOURCE_ID = "yt-dlp";
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
+const SAFE_SOURCE_KEY = /^[A-Za-z0-9_-]+$/;
+const INFO_REL_PATH = "raw/info.json";
+
+function captionsRelPath(track: CaptionTrack): string {
+  return `raw/captions.${track.sourceKey}.json3`;
+}
 
 function canonicalUrl(videoId: string): string {
   return `https://www.youtube.com/watch?v=${videoId}`;
@@ -100,8 +106,25 @@ export class YtDlpExtractionSource implements ExtractionSourcePort {
 
     return {
       metadata: parseInfoJson(await readJson(destination)),
-      raw: rawArtifact("raw/info.json", file.size),
+      raw: rawArtifact(INFO_REL_PATH, file.size),
     };
+  }
+
+  async loadMetadata(
+    workDir: WorkDir,
+  ): Promise<{ metadata: VideoMetadata; raw: RawArtifact } | null> {
+    // Any failure — missing file, truncated JSON, drifted shape — means the
+    // same thing to the caller: nothing usable here, fetch instead.
+    try {
+      const destination = path.join(workDir, INFO_REL_PATH);
+      const file = await stat(destination);
+      return {
+        metadata: parseInfoJson(await readJson(destination)),
+        raw: rawArtifact(INFO_REL_PATH, file.size),
+      };
+    } catch {
+      return null;
+    }
   }
 
   async fetchThumbnail(
@@ -117,7 +140,7 @@ export class YtDlpExtractionSource implements ExtractionSourcePort {
     track: CaptionTrack,
     workDir: WorkDir,
   ): Promise<{ document: ReturnType<typeof parseJson3>; raw: RawArtifact }> {
-    if (!/^[A-Za-z0-9_-]+$/.test(track.sourceKey)) {
+    if (!SAFE_SOURCE_KEY.test(track.sourceKey)) {
       throw new VetaError("PAYLOAD_SHAPE_CHANGED", "Caption track key is not filesystem-safe.");
     }
 
@@ -148,7 +171,7 @@ export class YtDlpExtractionSource implements ExtractionSourcePort {
     );
 
     const produced = path.join(workDir, `${outputStem}.${track.sourceKey}.json3`);
-    const relPath = `raw/captions.${track.sourceKey}.json3`;
+    const relPath = captionsRelPath(track);
     const destination = path.join(workDir, relPath);
     await rename(produced, destination);
     const file = await stat(destination);
@@ -157,6 +180,25 @@ export class YtDlpExtractionSource implements ExtractionSourcePort {
       document: parseJson3(await readJson(destination)),
       raw: rawArtifact(relPath, file.size),
     };
+  }
+
+  async loadCaptions(
+    track: CaptionTrack,
+    workDir: WorkDir,
+  ): Promise<{ document: ReturnType<typeof parseJson3>; raw: RawArtifact } | null> {
+    if (!SAFE_SOURCE_KEY.test(track.sourceKey)) return null;
+
+    try {
+      const relPath = captionsRelPath(track);
+      const destination = path.join(workDir, relPath);
+      const file = await stat(destination);
+      return {
+        document: parseJson3(await readJson(destination)),
+        raw: rawArtifact(relPath, file.size),
+      };
+    } catch {
+      return null;
+    }
   }
 
   async health(): Promise<SourceHealth> {
