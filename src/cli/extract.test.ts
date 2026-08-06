@@ -137,20 +137,46 @@ describe("extract", () => {
     expect(await readdir(dataDir)).not.toContain("1vqkurxr2c8");
   });
 
-  it("refuses rather than overwrite when the package name is already taken", async () => {
-    // Re-extracting a video whose package already exists lands here. Telling the
-    // two cases apart — same video again, or a different video with the same
-    // title — needs the identity in state.json, which arrives with resume.
+  it("re-extracts the same video into its existing package instead of refusing", async () => {
+    // The 5c gap, closed: state.json carries the identity, so the runner can
+    // tell "this video again" from "another video that slugs the same".
+    const source = new YtDlpExtractionSource();
+    const first = await extract("1VqKUrxR2C8", source, newStore());
+
+    const second = await extract("1VqKUrxR2C8", source, newStore());
+
+    expect(second).toBe(first);
+  });
+
+  it("still refuses when a different video resolves to the same package name", async () => {
+    // The fixture answers every id with the same title, which is exactly the
+    // collision: no run record matches this id, so the name is genuinely taken.
     const source = new YtDlpExtractionSource();
     await extract("1VqKUrxR2C8", source, newStore());
 
     let code = "no-throw";
     try {
-      await extract("1VqKUrxR2C8", source, newStore());
+      await extract("2VqKUrxR2C8", source, newStore());
     } catch (error) {
       code = isVetaError(error) ? error.code : `not-a-veta-error: ${String(error)}`;
     }
 
     expect(code).toBe("WORK_DIR_EXISTS");
+  });
+
+  it("passes force through to the runner", async () => {
+    // Without force a finished run answers from disk and raw/ is untouched;
+    // force resets the package, so a marker planted in raw/ must disappear.
+    const source = new YtDlpExtractionSource();
+    await extract("1VqKUrxR2C8", source, newStore());
+
+    const marker = path.join(dataDir, "building-opencode-with-dax-raad", "raw", "marker.txt");
+    await writeFile(marker, "stale", "utf8");
+
+    await extract("1VqKUrxR2C8", source, newStore());
+    expect(await readFile(marker, "utf8")).toBe("stale");
+
+    await extract("1VqKUrxR2C8", source, newStore(), { force: true });
+    await expect(readFile(marker, "utf8")).rejects.toThrow();
   });
 });

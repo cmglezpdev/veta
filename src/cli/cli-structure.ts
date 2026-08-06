@@ -14,6 +14,7 @@ export class CommandFinished extends Error {
 export type ExtractArgs = {
   readonly url: string;
   readonly lang?: string;
+  readonly force?: boolean;
 };
 
 export type CliHandlers = {
@@ -32,6 +33,10 @@ const extractBuilder = (builder: Argv) =>
     .option("lang", {
       type: "string",
       describe: "Preferred caption language code (BCP-47)",
+    })
+    .option("force", {
+      type: "boolean",
+      describe: "Discard prior progress and re-extract from scratch",
     });
 
 /** Map bare `veta <url>` (and `veta --lang … <url>`) to the extract subcommand. */
@@ -87,6 +92,7 @@ export function buildCliProgram(
         await handlers.extract({
           url: String(args.url),
           lang: args.lang as string | undefined,
+          force: args.force as boolean | undefined,
         });
       },
     )

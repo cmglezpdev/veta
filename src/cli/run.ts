@@ -40,11 +40,12 @@ function vetaErrorCodeFromString(code: string): VetaErrorCode | undefined {
   return codes.find((candidate) => candidate === code);
 }
 
-async function runExtract(url: string, preferredLang?: string): Promise<void> {
+async function runExtract(url: string, preferredLang?: string, force?: boolean): Promise<void> {
   const source = new YtDlpExtractionSource();
   const store = new FsStore({ dataDir: dataDirFromEnv() });
   const transcriptPath = await extract(url, source, store, {
     preferredLang: preferredLang ?? null,
+    force: force ?? false,
   });
   process.stdout.write(`${transcriptPath}\n`);
 }
@@ -74,8 +75,8 @@ async function runDoctor(): Promise<void> {
 function buildProgram(argv: readonly string[]) {
   return buildCliProgram(
     {
-      extract: async ({ url, lang }) => {
-        await runExtract(url, lang);
+      extract: async ({ url, lang, force }) => {
+        await runExtract(url, lang, force);
       },
       doctor: runDoctor,
     },
