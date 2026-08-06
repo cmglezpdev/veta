@@ -76,12 +76,19 @@ Override with `VETA_DATA_DIR`:
 VETA_DATA_DIR=~/Notes/youtube veta "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
+Re-running the same video is safe: a finished extraction returns its existing
+`transcript.md` without touching the network, and an interrupted one resumes
+in the same package folder instead of starting over. Pass `--force` to discard
+prior progress and extract from scratch — it removes only files veta writes,
+never anything else you keep in the folder.
+
 ## Commands
 
 | Command | What it does |
 |---|---|
 | `veta <url>` | Extract captions → normalized `transcript.md` |
 | `veta extract <url> [--lang <code>]` | Same, with an explicit preferred language (BCP-47) |
+| `veta extract <url> --force` | Re-extract from scratch, discarding prior progress |
 | `veta doctor` | Show which `yt-dlp` binary will be used |
 | `veta completion` | Print a shell completion script (zsh/bash) |
 
