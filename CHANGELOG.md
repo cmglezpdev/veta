@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/cmglezpdev/veta/compare/veta-v0.5.0...veta-v0.6.0) (2026-08-07)
+
+
+### Features
+
+* **cli:** generate a notes prompt and offer Enter-to-copy to clipboard ([#26](https://github.com/cmglezpdev/veta/issues/26)) ([ae17cbb](https://github.com/cmglezpdev/veta/commit/ae17cbb8b427cde52447e7025fe575ee879838fd))
+
 ## [0.5.0](https://github.com/cmglezpdev/veta/compare/veta-v0.4.1...veta-v0.5.0) (2026-08-04)
 
 
