@@ -20,7 +20,8 @@ backup across sessions.
 3. ~~Slice 4: CLI shell (`yargs`, completion, doctor).~~
 4. ~~Slice 5: StorePort, run domain, FsStore, `extract` on the port (catalog PR-6).~~
 5. **Now:** pipeline runner that actually resumes mid-run (catalog PR-8).
-6. Later: progress UX, prompt delivery.
+6. ~~Prompt generation + Enter-to-copy delivery.~~
+7. Later: progress UX.
 
 ---
 
@@ -51,9 +52,17 @@ doctor) **before** StorePort/resume so the command surface stabilizes first.
 
 - Config persistence and doctor polish
 - Progress UX (`StepEvents` → listr2 / plain)
-- Prompt hydration + agent delivery
 - Speaker-change paragraph breaks (`isSpeakerChange`)
 - Tightening `assignChapters` vs `Chapter.endSec` (left undecided on purpose)
+
+**No longer deferred — prompt generation shipped.** `runExtraction` now builds
+`prompt.md` (pure `domain/prompt/build-prompt.ts`) beside `transcript.md` and
+records `prompt_generated` as `complete`; only `thumbnail_downloaded` remains
+`skipped`. Finished packages from before this slice keep `skipped` and are
+never rebuilt — the short-circuit reports a `null` prompt path for them. In a
+TTY, `veta extract` offers the prompt on stderr and copies it to the clipboard
+on plain Enter (`VETA_CLIPBOARD_CMD` overrides the platform command); stdout
+stays the single transcript-path line.
 
 The original 12-PR SDD checklist still lives in Engram (`sdd/veta-v1/tasks`).
 Treat it as a **parts catalog**, not the current sequence. Slice 4 maps to
@@ -275,4 +284,5 @@ under `sdd/route-b-slice-6/handoff`.
 - [x] Slice 4 — CLI shell (`yargs`, completion, doctor, `--lang`)
 - [x] Slice 5 — `StorePort` + run/resume domain + `FsStore`
 - [ ] Slice 6 — pipeline runner (resume orchestration, `--force` wiring)
+- [x] Prompt generation — `prompt.md` + Enter-to-copy clipboard delivery
 - [ ] Revisit prompt / progress UX against real usage

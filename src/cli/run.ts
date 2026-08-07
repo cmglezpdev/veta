@@ -1,8 +1,11 @@
+import { readFile } from "node:fs/promises";
 import { FsStore } from "../adapters/store/fs-store.ts";
 import { YtDlpExtractionSource } from "../adapters/ytdlp/ytdlp-extraction-source.ts";
 import { VetaError, isVetaError } from "../domain/errors/veta-error.ts";
 import type { VetaErrorCode } from "../domain/errors/veta-error.ts";
 import { buildCliProgram, CommandFinished } from "./cli-structure.ts";
+import { copyToClipboard } from "./clipboard.ts";
+import { confirmEnter } from "./confirm.ts";
 import { exitCodeFor } from "./exit-codes.ts";
 import { extract } from "./extract.ts";
 
@@ -43,11 +46,49 @@ function vetaErrorCodeFromString(code: string): VetaErrorCode | undefined {
 async function runExtract(url: string, preferredLang?: string, force?: boolean): Promise<void> {
   const source = new YtDlpExtractionSource();
   const store = new FsStore({ dataDir: dataDirFromEnv() });
-  const transcriptPath = await extract(url, source, store, {
+  const { transcriptPath, promptPath } = await extract(url, source, store, {
     preferredLang: preferredLang ?? null,
     force: force ?? false,
   });
+  // The one line scripts can rely on. Everything conversational goes to stderr.
   process.stdout.write(`${transcriptPath}\n`);
+  await offerPromptCopy(promptPath);
+}
+
+/**
+ * Offer to put the generated prompt on the clipboard.
+ *
+ * Strictly a courtesy on top of the printed path, so it exists only in an
+ * interactive session: both stdin and stderr must be TTYs, which keeps pipes,
+ * CI, and tests on the plain one-line contract. A clipboard failure is
+ * reported and swallowed — the extraction already succeeded.
+ */
+async function offerPromptCopy(promptPath: string | null): Promise<void> {
+  if (promptPath === null || !process.stdin.isTTY || !process.stderr.isTTY) {
+    return;
+  }
+
+  process.stderr.write(`Prompt ready: ${promptPath}\n`);
+  const accepted = await confirmEnter(
+    process.stdin,
+    process.stderr,
+    "Press Enter to copy it to your clipboard (anything else skips) ",
+  );
+  // readline leaves stdin flowing; release it so the process can exit.
+  process.stdin.pause();
+
+  if (!accepted) {
+    process.stderr.write("Skipped.\n");
+    return;
+  }
+
+  try {
+    await copyToClipboard(await readFile(promptPath, "utf8"));
+    process.stderr.write("Copied to clipboard.\n");
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`Warning: ${reason} The prompt is still at ${promptPath}.\n`);
+  }
 }
 
 async function runDoctor(): Promise<void> {

@@ -43,6 +43,14 @@ with AI in this tech market …
 That file is the product today. Hand it to Cursor, Claude Code, Obsidian, or
 whatever you already use — veta does not write the notes for you.
 
+Next to it, veta writes `prompt.md`: ready-made instructions for an AI
+assistant working in that folder to turn `transcript.md` into structured,
+timestamp-cited study notes. In an interactive terminal, `veta` offers to
+copy the prompt after printing the transcript path — press Enter to accept,
+anything else skips. Set `VETA_CLIPBOARD_CMD` to route the copy through a
+custom command (it receives the text on stdin) instead of the platform
+clipboard tool.
+
 ## Quick path
 
 1. **Node 24+** and a working [`yt-dlp`](https://github.com/yt-dlp/yt-dlp)
@@ -105,11 +113,12 @@ Point at a specific binary with `VETA_YTDLP_PATH` if needed.
 ## Status (v0.4)
 
 **Works today:** pick the right caption track, download via yt-dlp, normalize
-into chaptered Markdown with deep links, resume interrupted runs and re-run
-safely (`--force` to start over), ship as `@cmglezpdev/veta`.
+into chaptered Markdown with deep links, generate `prompt.md` with note-taking
+instructions (Enter to copy it to your clipboard), resume interrupted runs and
+re-run safely (`--force` to start over), ship as `@cmglezpdev/veta`.
 
-**Not yet:** progress UI, config persistence, prompt hydration, or launching
-an AI agent. Those are next — see [docs/08-roadmap.md](docs/08-roadmap.md).
+**Not yet:** progress UI, config persistence, or launching an AI agent. Those
+are next — see [docs/08-roadmap.md](docs/08-roadmap.md).
 
 veta will never generate the notes itself. It extracts, cleans, and hands off.
 

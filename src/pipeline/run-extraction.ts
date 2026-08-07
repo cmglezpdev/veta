@@ -1,4 +1,5 @@
 import path from "node:path";
+import { buildNotesPrompt } from "../domain/prompt/build-prompt.ts";
 import { createRunRecord, type RunRecord, withStep } from "../domain/run/run-record.ts";
 import { firstIncompleteStep } from "../domain/run/resume.ts";
 import { assignChapters } from "../domain/transcript/chapters.ts";
@@ -11,6 +12,7 @@ import type { ExtractionSourcePort, WorkDir } from "../ports/extraction-source.t
 import type { StorePort } from "../ports/store.ts";
 
 const TRANSCRIPT_FILE = "transcript.md";
+const PROMPT_FILE = "prompt.md";
 
 export type RunExtractionOptions = {
   /** `--lang` equivalent; null runs the FR-4 automatic rule. */
@@ -32,6 +34,12 @@ export type RunExtractionOptions = {
 export type RunExtractionResult = {
   /** Absolute path to the rendered transcript, for the caller to print. */
   readonly transcriptPath: string;
+  /**
+   * Absolute path to the generated notes prompt, or `null` when the package
+   * predates prompt generation — a finished run whose record marks the step
+   * skipped has no prompt.md, and answering from disk must not invent one.
+   */
+  readonly promptPath: string | null;
   /** Run state as persisted by the final save. */
   readonly record: RunRecord;
 };
@@ -73,7 +81,14 @@ export async function runExtraction(
   if (previous !== null && !force && firstIncompleteStep(previous) === null) {
     const workDir = await store.openWorkDir(previous.dirName);
     if ((await store.readArtifact(workDir, TRANSCRIPT_FILE)) !== null) {
-      return { transcriptPath: path.join(workDir, TRANSCRIPT_FILE), record: previous };
+      // A package written before prompt generation existed has no prompt.md
+      // (its record marks the step skipped). Answering from disk reports what
+      // is actually there instead of rebuilding a finished run.
+      const promptPath =
+        (await store.readArtifact(workDir, PROMPT_FILE)) !== null
+          ? path.join(workDir, PROMPT_FILE)
+          : null;
+      return { transcriptPath: path.join(workDir, TRANSCRIPT_FILE), promptPath, record: previous };
     }
     // Finished on paper but the transcript is gone; fall through and rebuild.
   }
@@ -118,10 +133,9 @@ export async function runExtraction(
     updatedAt: startedAt,
     steps: {
       metadata_fetched: "complete",
-      // Neither has an implementation yet. Left pending they would strand every
-      // run short of finished, since resume treats only pending as unfinished.
+      // No implementation yet. Left pending it would strand every run short of
+      // finished, since resume treats only pending as unfinished.
       thumbnail_downloaded: "skipped",
-      prompt_generated: "skipped",
     },
   });
   await store.saveRun(record);
@@ -142,6 +156,18 @@ export async function runExtraction(
   record = withStep(record, "transcript_normalized", "complete", now());
   await store.saveRun(record);
 
-  // Composition, not I/O: the caller wants a path it can print.
-  return { transcriptPath: path.join(workDir, artifact.relPath), record };
+  // The prompt speaks about the transcript, so it is written in the language
+  // of the track that was actually downloaded — not the video's original one.
+  const prompt = buildNotesPrompt(metadata, track.baseLanguage);
+  const promptArtifact = await store.writeArtifact(workDir, PROMPT_FILE, prompt);
+
+  record = withStep(record, "prompt_generated", "complete", now());
+  await store.saveRun(record);
+
+  // Composition, not I/O: the caller wants paths it can print.
+  return {
+    transcriptPath: path.join(workDir, artifact.relPath),
+    promptPath: path.join(workDir, promptArtifact.relPath),
+    record,
+  };
 }
