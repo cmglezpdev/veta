@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/cmglezpdev/veta/compare/veta-v0.6.1...veta-v0.7.0) (2026-08-10)
+
+
+### Features
+
+* **store:** keep packages in a global ~/.veta home and build notes in the assistant's cwd ([#29](https://github.com/cmglezpdev/veta/issues/29)) ([99d7587](https://github.com/cmglezpdev/veta/commit/99d75872c5ddfd2794c137bf5a00020404169d3e))
+
 ## [0.6.1](https://github.com/cmglezpdev/veta/compare/veta-v0.6.0...veta-v0.6.1) (2026-08-10)
 
 
