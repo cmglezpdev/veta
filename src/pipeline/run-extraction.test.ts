@@ -234,7 +234,11 @@ describe("runExtraction prompt generation", () => {
 
     const prompt = await readFile(result.promptPath!, "utf8");
     expect(prompt).toContain("Building OpenCode with Dax Raad");
-    expect(prompt).toContain("notes/README.md");
+    // The prompt points at the transcript where it actually lives and names
+    // the notes folder after the package, so an assistant running anywhere
+    // on the machine can find one and create the other.
+    expect(prompt).toContain(path.join(dataDir, PACKAGE_DIR, "transcript.md"));
+    expect(prompt).toContain(`${PACKAGE_DIR}/README.md`);
 
     expect((await readState()).steps.prompt_generated).toBe("complete");
   });

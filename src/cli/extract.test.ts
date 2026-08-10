@@ -96,7 +96,9 @@ describe("extract", () => {
     const { promptPath } = await extract("1VqKUrxR2C8", source, newStore());
 
     expect(promptPath).toBe(path.join(dataDir, "building-opencode-with-dax-raad", "prompt.md"));
-    expect(await readFile(promptPath!, "utf8")).toContain("notes/README.md");
+    expect(await readFile(promptPath!, "utf8")).toContain(
+      "building-opencode-with-dax-raad/README.md",
+    );
   });
 
   it("accepts a full YouTube URL", async () => {

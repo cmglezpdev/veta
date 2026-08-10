@@ -1,10 +1,10 @@
 import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { resetBinaryCache } from "../adapters/ytdlp/binary.ts";
-import { run } from "./run.ts";
+import { dataDirFromEnv, run } from "./run.ts";
 
 const FIXTURES = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -76,6 +76,19 @@ afterEach(async () => {
   else process.env["VETA_DATA_DIR"] = previousDataDir;
   resetBinaryCache();
   await rm(root, { force: true, recursive: true });
+});
+
+describe("dataDirFromEnv()", () => {
+  it("defaults to ~/.veta when VETA_DATA_DIR is unset", () => {
+    // Packages are app state, not deliverables: they belong in a global home
+    // directory, never in whatever folder the command happens to run from.
+    delete process.env["VETA_DATA_DIR"];
+    expect(dataDirFromEnv()).toBe(path.join(homedir(), ".veta"));
+  });
+
+  it("honors VETA_DATA_DIR as an override", () => {
+    expect(dataDirFromEnv()).toBe(outputRoot);
+  });
 });
 
 describe("run()", () => {

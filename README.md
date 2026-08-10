@@ -81,11 +81,15 @@ clipboard tool.
    veta extract VIDEO_ID --lang en
    ```
 
-By default the package folder is created in the current working directory.
-Override with `VETA_DATA_DIR`:
+Packages live in `~/.veta`, regardless of where the command runs — they are
+veta's state (raw downloads, run records, the transcript), not your notes.
+The generated prompt points the AI assistant at the transcript inside
+`~/.veta` and has the notes created in the assistant's own working directory
+(your Obsidian vault, a project folder, wherever you opened it).
+Override the data directory with `VETA_DATA_DIR`:
 
 ```sh
-VETA_DATA_DIR=~/Notes/youtube veta "https://www.youtube.com/watch?v=VIDEO_ID"
+VETA_DATA_DIR=~/somewhere/else veta "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
 Re-running the same video is safe: a finished extraction returns its existing
