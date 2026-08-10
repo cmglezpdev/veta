@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/veta-banner.png" alt="veta — extract the valuable core of a video into clean notes" width="100%" />
+</p>
+
 # veta
 
 Turn a YouTube URL into a clean, chaptered Markdown transcript — ready for you
