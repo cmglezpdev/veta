@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/cmglezpdev/veta/compare/veta-v0.6.0...veta-v0.6.1) (2026-08-10)
+
+
+### Documentation
+
+* **readme:** add project banner ([4f31473](https://github.com/cmglezpdev/veta/commit/4f31473f9697bc7b010feb8e325153639f28b63a))
+
 ## [0.6.0](https://github.com/cmglezpdev/veta/compare/veta-v0.5.0...veta-v0.6.0) (2026-08-07)
 
 
