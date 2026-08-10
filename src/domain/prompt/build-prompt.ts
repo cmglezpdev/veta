@@ -1,13 +1,29 @@
 import { formatClock } from "../time/clock.ts";
 import type { VideoMetadata } from "../video/metadata.ts";
 
+/** Where the prompt should point: the one package this prompt is about. */
+export type PromptTarget = {
+  /** Absolute path to the rendered transcript inside the data directory. */
+  readonly transcriptPath: string;
+  /**
+   * The package's directory name. The assistant reuses it as the name of the
+   * notes folder, so notes and package identify the same video by the same name.
+   */
+  readonly packageName: string;
+};
+
 /**
  * Render the instructions handed to an AI assistant alongside the transcript.
  *
  * The prompt is the product's second half: the transcript captures what was
- * said, and this document tells an assistant sitting in the same folder how to
- * turn it into study notes worth keeping. It is addressed to the assistant
- * directly — the person only delivers it.
+ * said, and this document tells an assistant how to turn it into study notes
+ * worth keeping. It is addressed to the assistant directly — the person only
+ * delivers it.
+ *
+ * The assistant runs wherever the person opened it — an Obsidian vault, a
+ * project folder — while the transcript stays inside veta's data directory.
+ * The prompt bridges the two: it points at the transcript by absolute path
+ * and has the notes created in the assistant's own working directory.
  *
  * Pure by construction, like the transcript renderer: metadata in, one
  * markdown string out, no clock, no filesystem.
@@ -19,25 +35,32 @@ import type { VideoMetadata } from "../video/metadata.ts";
 export function buildNotesPrompt(
   metadata: VideoMetadata,
   transcriptLang: string | null,
+  target: PromptTarget,
 ): string {
+  const notesDir = target.packageName;
   const blocks: string[] = [
     "# Build study notes from this video's transcript",
     "",
-    "You are working inside a video's package folder. It contains `transcript.md`, " +
-      "a timestamped transcript of the video. Your mission is to turn that " +
-      "transcript into structured study notes that stand on their own.",
+    "A timestamped transcript of a video lives at:",
+    "",
+    `\`${target.transcriptPath}\``,
+    "",
+    "Your mission is to turn that transcript into structured study notes that " +
+      "stand on their own, written into a new folder inside your current " +
+      "working directory.",
     "",
     ...contextBlock(metadata),
     "## How the transcript is written",
     "",
-    "Every paragraph in `transcript.md` begins with a timestamp deep link, such as " +
+    "Every paragraph in the transcript begins with a timestamp deep link, such as " +
       "[`3:25`](https://example.com/watch?v=...&t=205), pointing at the exact moment in the " +
       "video where that paragraph starts. These links are your citation currency: " +
       "copy them verbatim whenever you reference a passage.",
     "",
     "## Step 1 — Read and classify",
     "",
-    "Read `transcript.md` in full before writing anything. Then classify the " +
+    "Read the transcript in full before writing anything; if it is long, read " +
+      "it in chunks until you have covered all of it. Then classify the " +
       "content: educational video, tutorial, podcast/interview, conference talk, " +
       "opinion/news, or other. Let that classification drive the rest — it decides " +
       "how the material splits into topics and how deep each note goes. A tutorial " +
@@ -47,21 +70,24 @@ export function buildNotesPrompt(
     "",
     "## Step 2 — Write the notes",
     "",
-    "Create a `notes/` folder next to `transcript.md` containing:",
+    `Create a \`${notesDir}/\` folder in your current working directory containing:`,
     "",
-    "- `notes/README.md` — the root file. It holds the video title, a short " +
+    `- \`${notesDir}/README.md\` — the root file. It holds the video title, a short ` +
       "summary, and the complete topic breakdown as an ordered list where each " +
       "entry links to its topic file. Add a mermaid overview diagram when it " +
       "genuinely clarifies the video's structure; skip it otherwise.",
-    "- One file per topic, named `notes/NN-topic-slug.md` with a zero-padded " +
-      "order prefix (`notes/01-introduction.md`, `notes/02-architecture.md`, ...).",
+    "- One file per topic, named with a zero-padded " +
+      `order prefix (\`${notesDir}/01-introduction.md\`, \`${notesDir}/02-architecture.md\`, ...).`,
+    `- \`${notesDir}/transcript.md\` — a verbatim copy of the transcript file ` +
+      "named above. Copy it as-is, without editing, so the notes folder stands " +
+      "alone for future questions about the video.",
     "",
     "### Rules for every topic file",
     "",
     "- Be concise: capture the main points of each section, never re-transcribe it.",
     "- Prefer enumerations and bullet points over prose.",
     "- Every key claim, definition, or data point ends with its timestamp deep " +
-      "link copied from `transcript.md`, cited like references in a paper, so the " +
+      "link copied from the transcript, cited like references in a paper, so the " +
       "reader can jump to the exact moment it was said.",
     "- Include a mermaid diagram only when it genuinely helps — flows, " +
       "architectures, comparisons, timelines. Never decoratively.",

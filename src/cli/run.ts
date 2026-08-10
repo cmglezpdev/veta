@@ -1,4 +1,6 @@
 import { readFile } from "node:fs/promises";
+import { homedir } from "node:os";
+import path from "node:path";
 import { FsStore } from "../adapters/store/fs-store.ts";
 import { YtDlpExtractionSource } from "../adapters/ytdlp/ytdlp-extraction-source.ts";
 import { VetaError, isVetaError } from "../domain/errors/veta-error.ts";
@@ -10,11 +12,14 @@ import { exitCodeFor } from "./exit-codes.ts";
 import { extract } from "./extract.ts";
 
 /**
- * Where packages live. Per invocation, from the environment — veta keeps no
- * config file, so there is nothing else to consult.
+ * Where packages live: `~/.veta` unless `VETA_DATA_DIR` overrides it.
+ *
+ * Packages are app state, not deliverables — one global home keeps them out
+ * of whatever folder the command happens to run from, and lets any later
+ * invocation anywhere on the machine find every previous extraction.
  */
-function dataDirFromEnv(): string {
-  return process.env["VETA_DATA_DIR"] ?? process.cwd();
+export function dataDirFromEnv(): string {
+  return process.env["VETA_DATA_DIR"] ?? path.join(homedir(), ".veta");
 }
 
 function isYargsHelpError(error: unknown): boolean {

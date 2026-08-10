@@ -158,7 +158,10 @@ export async function runExtraction(
 
   // The prompt speaks about the transcript, so it is written in the language
   // of the track that was actually downloaded — not the video's original one.
-  const prompt = buildNotesPrompt(metadata, track.baseLanguage);
+  const prompt = buildNotesPrompt(metadata, track.baseLanguage, {
+    transcriptPath: path.join(workDir, artifact.relPath),
+    packageName: dirName,
+  });
   const promptArtifact = await store.writeArtifact(workDir, PROMPT_FILE, prompt);
 
   record = withStep(record, "prompt_generated", "complete", now());
