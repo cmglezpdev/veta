@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/cmglezpdev/veta/compare/veta-v0.8.0...veta-v0.9.0) (2026-08-11)
+
+
+### Features
+
+* **cli:** step-by-step extraction progress on stderr ([#34](https://github.com/cmglezpdev/veta/issues/34)) ([e906dd6](https://github.com/cmglezpdev/veta/commit/e906dd67e6602d1cb9859aa3f0b8d3ff21d1dc48))
+
 ## [0.8.0](https://github.com/cmglezpdev/veta/compare/veta-v0.7.0...veta-v0.8.0) (2026-08-11)
 
 
