@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0](https://github.com/cmglezpdev/veta/compare/veta-v0.7.0...veta-v0.8.0) (2026-08-11)
+
+
+### Features
+
+* **prompt:** close the README with a key-takeaways section and demand outcomes per note ([#32](https://github.com/cmglezpdev/veta/issues/32)) ([32bbcd3](https://github.com/cmglezpdev/veta/commit/32bbcd3bbe4ad8afd469cc811d0607cbc9c3e22e))
+* **thumbnail:** download the video cover and embed it in the notes README ([#31](https://github.com/cmglezpdev/veta/issues/31)) ([6becab6](https://github.com/cmglezpdev/veta/commit/6becab6e6865665274768c7f3594b14249206517))
+
 ## [0.7.0](https://github.com/cmglezpdev/veta/compare/veta-v0.6.1...veta-v0.7.0) (2026-08-10)
 
 
