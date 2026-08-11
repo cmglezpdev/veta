@@ -72,6 +72,12 @@ all of:
 All top-level keys (`pens`, `wireMagic`, `wpWinPositions`, `wsWinStyles`) are
 preserved so the sliced file has the same shape as the full one.
 
+### `thumbnail.png` — synthetic
+
+A minimal valid 1×1 PNG (70 bytes), not a captured payload. The fake yt-dlp
+in the tests copies it wherever `--write-thumbnail` asks, so thumbnail
+handling exercises a real image file without committing a real cover.
+
 ### `stderr-success.txt`
 
 Real stderr from a clean exit-0 run. It carries an impersonation warning,

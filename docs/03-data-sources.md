@@ -47,7 +47,7 @@ Parsed by `src/adapters/ytdlp/info-json.ts` into `VideoMetadata`:
 | `id`, `title` | `id`, `title` | Missing either is a shape change upstream, and fails loudly |
 | `duration` | `durationSec` | |
 | `uploader` | `uploader` | |
-| `thumbnail` | `thumbnailUrl` | A URL, not image bytes — downloading is a separate step |
+| `thumbnail` | `thumbnailUrl` | A URL, not image bytes — `fetchThumbnail` downloads it to `cover.<ext>` in a separate, best-effort step |
 | `webpage_url` | `canonicalUrl` | The base for per-paragraph deep links |
 | `chapters[]` | `Chapter[]` | `start_time` and `end_time`, both confirmed present |
 

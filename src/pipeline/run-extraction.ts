@@ -133,11 +133,16 @@ export async function runExtraction(
     updatedAt: startedAt,
     steps: {
       metadata_fetched: "complete",
-      // No implementation yet. Left pending it would strand every run short of
-      // finished, since resume treats only pending as unfinished.
-      thumbnail_downloaded: "skipped",
     },
   });
+  await store.saveRun(record);
+
+  // Best effort: the adapter answers with the existing cover on resume and
+  // with null on any failure, so the step degrades to skipped instead of
+  // failing a run over a missing nicety.
+  const thumbnail = await source.fetchThumbnail(metadata, workDir);
+  const thumbnailStatus = thumbnail !== null ? "complete" : "skipped";
+  record = withStep(record, "thumbnail_downloaded", thumbnailStatus, now());
   await store.saveRun(record);
 
   const loadedCaptions = previous !== null && !force ? await source.loadCaptions(track, workDir) : null;
@@ -161,6 +166,7 @@ export async function runExtraction(
   const prompt = buildNotesPrompt(metadata, track.baseLanguage, {
     transcriptPath: path.join(workDir, artifact.relPath),
     packageName: dirName,
+    thumbnailPath: thumbnail !== null ? path.join(workDir, thumbnail.file.relPath) : null,
   });
   const promptArtifact = await store.writeArtifact(workDir, PROMPT_FILE, prompt);
 
