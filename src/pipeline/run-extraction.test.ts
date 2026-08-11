@@ -7,6 +7,7 @@ import { FsStore } from "../adapters/store/fs-store.ts";
 import { resetBinaryCache } from "../adapters/ytdlp/binary.ts";
 import { YtDlpExtractionSource } from "../adapters/ytdlp/ytdlp-extraction-source.ts";
 import { parseRunRecord, type RunRecord } from "../domain/run/run-record.ts";
+import type { ProgressEvent } from "./progress.ts";
 import { runExtraction } from "./run-extraction.ts";
 
 const FIXTURES = path.join(
@@ -328,6 +329,115 @@ describe("runExtraction prompt generation", () => {
     expect(result.promptPath).toBeNull();
     expect(result.transcriptPath).toBe(path.join(dataDir, PACKAGE_DIR, "transcript.md"));
     expect(await readdir(path.join(dataDir, PACKAGE_DIR))).not.toContain("prompt.md");
+  });
+});
+
+describe("runExtraction progress", () => {
+  function capture(): { readonly events: ProgressEvent[]; onProgress: (e: ProgressEvent) => void } {
+    const events: ProgressEvent[] = [];
+    return { events, onProgress: (event) => events.push(event) };
+  }
+
+  it("narrates a fresh run start-to-finish, every phase fresh", async () => {
+    const { events, onProgress } = capture();
+
+    await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+      onProgress,
+    });
+
+    expect(events).toEqual([
+      { kind: "phase:start", phase: "identify" },
+      { kind: "phase:done", phase: "identify", outcome: "fresh" },
+      { kind: "phase:start", phase: "metadata" },
+      { kind: "phase:done", phase: "metadata", outcome: "fresh" },
+      { kind: "phase:start", phase: "thumbnail" },
+      { kind: "phase:done", phase: "thumbnail", outcome: "fresh" },
+      { kind: "phase:start", phase: "captions" },
+      { kind: "phase:done", phase: "captions", outcome: "fresh" },
+      { kind: "phase:start", phase: "transcript" },
+      { kind: "phase:done", phase: "transcript", outcome: "fresh" },
+      { kind: "phase:start", phase: "prompt" },
+      { kind: "phase:done", phase: "prompt", outcome: "fresh" },
+    ]);
+  });
+
+  it("reports the resume and what came from disk instead of the network", async () => {
+    const first = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+    });
+    await rm(first.transcriptPath);
+    // Every raw file survived, so the resumed run must load rather than fetch —
+    // and say so. Sabotage proves "cached" is not just a label on a re-fetch.
+    await sabotageFetches();
+
+    const { events, onProgress } = capture();
+    await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock("2026-02-02"),
+      onProgress,
+    });
+
+    expect(events).toEqual([
+      { kind: "phase:start", phase: "identify" },
+      { kind: "phase:done", phase: "identify", outcome: "fresh" },
+      { kind: "run:resumed", dirName: PACKAGE_DIR },
+      { kind: "phase:start", phase: "metadata" },
+      { kind: "phase:done", phase: "metadata", outcome: "cached" },
+      { kind: "phase:start", phase: "thumbnail" },
+      { kind: "phase:done", phase: "thumbnail", outcome: "fresh" },
+      { kind: "phase:start", phase: "captions" },
+      { kind: "phase:done", phase: "captions", outcome: "cached" },
+      { kind: "phase:start", phase: "transcript" },
+      { kind: "phase:done", phase: "transcript", outcome: "fresh" },
+      { kind: "phase:start", phase: "prompt" },
+      { kind: "phase:done", phase: "prompt", outcome: "fresh" },
+    ]);
+  });
+
+  it("says only that a finished run was answered from disk", async () => {
+    await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+    });
+
+    const { events, onProgress } = capture();
+    await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock("2026-02-02"),
+      onProgress,
+    });
+
+    expect(events).toEqual([
+      { kind: "phase:start", phase: "identify" },
+      { kind: "phase:done", phase: "identify", outcome: "fresh" },
+      { kind: "run:answered-from-disk", dirName: PACKAGE_DIR },
+    ]);
+  });
+
+  it("reports a failed thumbnail as skipped, matching the record", async () => {
+    process.env["VETA_FAKE_THUMBNAIL_FAIL"] = "1";
+
+    const { events, onProgress } = capture();
+    await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+      onProgress,
+    });
+
+    expect(events).toContainEqual({ kind: "phase:done", phase: "thumbnail", outcome: "skipped" });
+  });
+
+  it("does not claim a resume under force, which disowns the previous run", async () => {
+    await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+    });
+
+    const { events, onProgress } = capture();
+    await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      force: true,
+      now: tickingClock("2027-03-03"),
+      onProgress,
+    });
+
+    expect(events.map((event) => event.kind)).not.toContain("run:resumed");
+    expect(events).toContainEqual({ kind: "phase:done", phase: "metadata", outcome: "fresh" });
   });
 });
 

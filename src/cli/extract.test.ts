@@ -7,6 +7,7 @@ import { FsStore } from "../adapters/store/fs-store.ts";
 import { resetBinaryCache } from "../adapters/ytdlp/binary.ts";
 import { YtDlpExtractionSource } from "../adapters/ytdlp/ytdlp-extraction-source.ts";
 import { isVetaError } from "../domain/errors/veta-error.ts";
+import type { ProgressEvent } from "../pipeline/progress.ts";
 import { extract } from "./extract.ts";
 
 const FIXTURES = path.join(
@@ -172,6 +173,18 @@ describe("extract", () => {
     }
 
     expect(code).toBe("WORK_DIR_EXISTS");
+  });
+
+  it("forwards progress events from the runner to the caller's listener", async () => {
+    const source = new YtDlpExtractionSource();
+    const events: ProgressEvent[] = [];
+
+    await extract("1VqKUrxR2C8", source, newStore(), {
+      onProgress: (event) => events.push(event),
+    });
+
+    expect(events[0]).toEqual({ kind: "phase:start", phase: "identify" });
+    expect(events.at(-1)).toEqual({ kind: "phase:done", phase: "prompt", outcome: "fresh" });
   });
 
   it("passes force through to the runner", async () => {

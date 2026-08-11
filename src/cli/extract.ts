@@ -1,3 +1,4 @@
+import type { ProgressListener } from "../pipeline/progress.ts";
 import { runExtraction } from "../pipeline/run-extraction.ts";
 import type { ExtractionSourcePort } from "../ports/extraction-source.ts";
 import type { StorePort } from "../ports/store.ts";
@@ -7,6 +8,8 @@ export type ExtractOptions = {
   readonly preferredLang?: string | null;
   /** `--force` equivalent: discard prior progress and re-extract. */
   readonly force?: boolean;
+  /** Observer for step-by-step feedback; the CLI hangs a renderer here. */
+  readonly onProgress?: ProgressListener;
 };
 
 export type ExtractResult = {
@@ -34,6 +37,7 @@ export async function extract(
   const { transcriptPath, promptPath } = await runExtraction(input, source, store, {
     preferredLang: options.preferredLang ?? null,
     force: options.force ?? false,
+    onProgress: options.onProgress,
   });
 
   return { transcriptPath, promptPath };
