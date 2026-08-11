@@ -21,7 +21,7 @@ backup across sessions.
 4. ~~Slice 5: StorePort, run domain, FsStore, `extract` on the port (catalog PR-6).~~
 5. **Now:** pipeline runner that actually resumes mid-run (catalog PR-8).
 6. ~~Prompt generation + Enter-to-copy delivery.~~
-7. Later: progress UX.
+7. ~~Progress UX: typed pipeline events + hand-rolled stderr renderer.~~
 
 ---
 
@@ -51,7 +51,6 @@ doctor) **before** StorePort/resume so the command surface stabilizes first.
 **Still deferred** (after store + pipeline):
 
 - Config persistence and doctor polish
-- Progress UX (`StepEvents` → listr2 / plain)
 - Speaker-change paragraph breaks (`isSpeakerChange`)
 - Tightening `assignChapters` vs `Chapter.endSec` (left undecided on purpose)
 
@@ -143,8 +142,9 @@ adapter from slice 2. Hand-rolled argv (no yargs). On `main` via PR #8.
 `veta <url>`, explicit `veta extract <url>`, `veta completion` (zsh
 `#compdef`), thin `veta doctor`, and `--lang` on the extract path. Completion
 short-circuits before adapter imports (D17 / FR-23). This PR closes the
-catalog PR-9 surface; progress UX (listr), config persistence, and prompt
-delivery remain deferred.
+catalog PR-9 surface; progress UX and prompt delivery have since shipped
+(typed pipeline events plus a hand-rolled stderr renderer — no listr);
+config persistence remains deferred.
 
 
 | Piece                         | Responsibility                                                                 |
@@ -157,7 +157,8 @@ delivery remain deferred.
 
 **Out of scope for this PR (intentionally deferred):** StorePort, pipeline
 `StepEvents`, listr progress UX, config persistence, prompt delivery,
-`--force` resume.
+`--force` resume. Progress UX has since landed — typed pipeline events and a
+hand-rolled stderr renderer, not listr.
 
 **Parts catalog ref:** Engram `sdd/veta-v1/tasks` → PR-9.
 
@@ -288,4 +289,5 @@ under `sdd/route-b-slice-6/handoff`.
 - [x] Slice 5 — `StorePort` + run/resume domain + `FsStore`
 - [ ] Slice 6 — pipeline runner (resume orchestration, `--force` wiring)
 - [x] Prompt generation — `prompt.md` + Enter-to-copy clipboard delivery
-- [ ] Revisit prompt / progress UX against real usage
+- [x] Progress UX — typed pipeline events + hand-rolled stderr renderer
+- [ ] Revisit prompt UX against real usage
