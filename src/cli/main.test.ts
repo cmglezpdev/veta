@@ -31,6 +31,7 @@ describe("cli entrypoint", () => {
     expect(result.stdout).toMatch(/extract/i);
     expect(result.stdout).toMatch(/completion/i);
     expect(result.stdout).toMatch(/doctor/i);
+    expect(result.stdout).toMatch(/list/i);
     expect(result.stdout).toMatch(/purge/i);
   });
 
@@ -122,6 +123,38 @@ describe("purge command", () => {
     expect(result.status).toBe(0);
     expect(result.stderr).toContain("Aborted");
     expect(existsSync(packageDir)).toBe(true);
+  });
+});
+
+describe("list command", () => {
+  let dataDir: string;
+
+  beforeEach(async () => {
+    dataDir = await mkdtemp(path.join(tmpdir(), "veta-cli-list-"));
+  });
+
+  afterEach(async () => {
+    await rm(dataDir, { recursive: true, force: true });
+  });
+
+  it("exits 0 and prints the stored package on stdout", async () => {
+    const record = createRunRecord({
+      externalId: "abc",
+      dirName: "my-video",
+      selectedTrack: null,
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    });
+    await mkdir(path.join(dataDir, "my-video"), { recursive: true });
+    await writeFile(
+      path.join(dataDir, "my-video", "state.json"),
+      JSON.stringify(record),
+      "utf8",
+    );
+
+    const result = runCli(["list"], { VETA_DATA_DIR: dataDir });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("my-video");
   });
 });
 

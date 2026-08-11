@@ -128,4 +128,8 @@ describe("run()", () => {
   it("returns 0 for doctor when yt-dlp is available", async () => {
     await expect(run(argv("doctor"))).resolves.toBe(0);
   });
+
+  it("returns 0 for list on an empty data directory", async () => {
+    await expect(run(argv("list"))).resolves.toBe(0);
+  });
 });

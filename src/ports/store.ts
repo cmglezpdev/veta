@@ -14,6 +14,12 @@ export interface StorePort {
   findRun(externalId: string): Promise<RunRecord | null>;
   saveRun(record: RunRecord): Promise<void>;
   listRuns(): Promise<readonly RunSummary[]>;
+  /**
+   * Full records for every stored run, newest first, straight from a disk
+   * scan — a {@link RunSummary} carries no steps, so status derivation needs
+   * the records themselves.
+   */
+  listRunRecords(): Promise<readonly RunRecord[]>;
   rebuildIndex(): Promise<{ readonly recovered: number }>;
   openWorkDir(dirName: string): Promise<WorkDir>;
   renameWorkDir(dir: WorkDir, newDirName: string): Promise<WorkDir>;

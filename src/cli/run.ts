@@ -10,6 +10,7 @@ import { copyToClipboard } from "./clipboard.ts";
 import { confirmEnter } from "./confirm.ts";
 import { exitCodeFor } from "./exit-codes.ts";
 import { extract } from "./extract.ts";
+import { list } from "./list.ts";
 import { purge } from "./purge.ts";
 import { createProgressRenderer } from "./render/progress-renderer.ts";
 
@@ -139,6 +140,16 @@ async function runDoctor(): Promise<void> {
   );
 }
 
+async function runList(): Promise<void> {
+  const store = new FsStore({ dataDir: dataDirFromEnv() });
+  const { count } = await list(store, process.stdout);
+
+  if (count === 0) {
+    // stdout stays data-only for scripts; the human-facing note rides on stderr.
+    process.stderr.write("No extractions stored.\n");
+  }
+}
+
 async function runPurge(): Promise<void> {
   const store = new FsStore({ dataDir: dataDirFromEnv() });
   await purge(store, process.stdin, process.stderr);
@@ -153,6 +164,7 @@ function buildProgram(argv: readonly string[]) {
         await runExtract(url, lang, force);
       },
       doctor: runDoctor,
+      list: runList,
       purge: runPurge,
     },
     argv,

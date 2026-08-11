@@ -340,6 +340,59 @@ describe("FsStore.listRuns", () => {
   });
 });
 
+describe("FsStore.listRunRecords", () => {
+  it("answers an empty list when nothing has been run", async () => {
+    const { store } = await tempStore();
+
+    expect(await store.listRunRecords()).toEqual([]);
+  });
+
+  it("answers an empty list when the data directory does not exist", async () => {
+    const dataDir = path.join(await mkdtemp(path.join(tmpdir(), "veta-store-")), "not-created");
+    roots.push(path.dirname(dataDir));
+
+    expect(await new FsStore({ dataDir }).listRunRecords()).toEqual([]);
+  });
+
+  it("returns full records with their steps, most recently updated first", async () => {
+    const { store, dataDir } = await tempStore();
+    const older = createRunRecord({
+      externalId: "old",
+      dirName: "older-video",
+      selectedTrack: null,
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      steps: { metadata_fetched: "complete" },
+    });
+    const newer = createRunRecord({
+      externalId: "new",
+      dirName: "newer-video",
+      selectedTrack: "en",
+      updatedAt: "2026-03-03T00:00:00.000Z",
+      steps: {
+        metadata_fetched: "complete",
+        thumbnail_downloaded: "skipped",
+        captions_downloaded: "complete",
+        transcript_normalized: "complete",
+        prompt_generated: "complete",
+      },
+    });
+    await plantPackage(dataDir, "older-video", older);
+    await plantPackage(dataDir, "newer-video", newer);
+
+    expect(await store.listRunRecords()).toEqual([newer, older]);
+  });
+
+  it("skips sibling directories that are not veta packages", async () => {
+    const { store, dataDir } = await tempStore();
+    await mkdir(path.join(dataDir, "node_modules"), { recursive: true });
+    await writeFile(path.join(dataDir, "loose-file.md"), "ignored", "utf8");
+    const saved = record({ externalId: "abc", dirName: "my-video" });
+    await plantPackage(dataDir, "my-video", saved);
+
+    expect(await store.listRunRecords()).toEqual([saved]);
+  });
+});
+
 describe("FsStore.rebuildIndex", () => {
   it("reports how many packages it recovered", async () => {
     const { store, dataDir } = await tempStore();

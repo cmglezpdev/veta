@@ -20,10 +20,11 @@ export type ExtractArgs = {
 export type CliHandlers = {
   readonly extract: (args: ExtractArgs) => Promise<void>;
   readonly doctor: () => Promise<void>;
+  readonly list: () => Promise<void>;
   readonly purge: () => Promise<void>;
 };
 
-const KNOWN_COMMANDS = new Set(["extract", "completion", "doctor", "purge"]);
+const KNOWN_COMMANDS = new Set(["extract", "completion", "doctor", "list", "purge"]);
 
 const extractBuilder = (builder: Argv) =>
   builder
@@ -80,6 +81,9 @@ export function buildCliProgram(
     )
     .command("doctor", "Check extraction source health", () => ({}), async () => {
       await handlers.doctor();
+    })
+    .command("list", "List stored extractions and their status", () => ({}), async () => {
+      await handlers.list();
     })
     .command("purge", "Delete all locally stored extraction data", () => ({}), async () => {
       await handlers.purge();
