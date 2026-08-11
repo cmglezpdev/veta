@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/cmglezpdev/veta/compare/veta-v0.9.0...veta-v0.10.0) (2026-08-11)
+
+
+### Features
+
+* **list:** add list command that shows stored extractions and their status ([#37](https://github.com/cmglezpdev/veta/issues/37)) ([38bf549](https://github.com/cmglezpdev/veta/commit/38bf5490a92b0bdd947191ce5bdfc5cf5ffd6c98))
+* **purge:** add purge command that wipes stored extraction data after confirmation ([#36](https://github.com/cmglezpdev/veta/issues/36)) ([c94b11a](https://github.com/cmglezpdev/veta/commit/c94b11ad87bd2fe8c6058fa0eaf314723d44c3c8))
+
 ## [0.9.0](https://github.com/cmglezpdev/veta/compare/veta-v0.8.0...veta-v0.9.0) (2026-08-11)
 
 

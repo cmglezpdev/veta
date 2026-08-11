@@ -1,6 +1,6 @@
 {
   "name": "@cmglezpdev/veta",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Turn YouTube videos into clean, structured, AI-ready notes",
   "bin": {
     "veta": "./bin/cli.js"
