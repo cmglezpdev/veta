@@ -10,6 +10,7 @@ import { copyToClipboard } from "./clipboard.ts";
 import { confirmEnter } from "./confirm.ts";
 import { exitCodeFor } from "./exit-codes.ts";
 import { extract } from "./extract.ts";
+import { createProgressRenderer } from "./render/progress-renderer.ts";
 
 /**
  * Where packages live: `~/.veta` unless `VETA_DATA_DIR` overrides it.
@@ -51,10 +52,29 @@ function vetaErrorCodeFromString(code: string): VetaErrorCode | undefined {
 async function runExtract(url: string, preferredLang?: string, force?: boolean): Promise<void> {
   const source = new YtDlpExtractionSource();
   const store = new FsStore({ dataDir: dataDirFromEnv() });
-  const { transcriptPath, promptPath } = await extract(url, source, store, {
-    preferredLang: preferredLang ?? null,
-    force: force ?? false,
+  // Progress rides on stderr like everything conversational; a TTY gets the
+  // spinner, a pipe gets plain lines. The renderer must be shut down on every
+  // exit path — a live spinner line would otherwise sit in front of the error
+  // message, and its timer would hold the process open.
+  // NO_COLOR convention (https://no-color.org): presence alone, any value,
+  // turns color off.
+  const renderer = createProgressRenderer(process.stderr, {
+    useColor: process.stderr.isTTY === true && process.env["NO_COLOR"] === undefined,
   });
+  let transcriptPath: string;
+  let promptPath: string | null;
+  try {
+    ({ transcriptPath, promptPath } = await extract(url, source, store, {
+      preferredLang: preferredLang ?? null,
+      force: force ?? false,
+      onProgress: renderer.onEvent,
+    }));
+  } catch (error) {
+    renderer.fail();
+    throw error;
+  } finally {
+    renderer.finish();
+  }
   // The one line scripts can rely on. Everything conversational goes to stderr.
   process.stdout.write(`${transcriptPath}\n`);
   await offerPromptCopy(promptPath);

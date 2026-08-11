@@ -10,6 +10,7 @@ import { slugify } from "../domain/video/slug.ts";
 import { selectTrack } from "../domain/video/track-selection.ts";
 import type { ExtractionSourcePort, WorkDir } from "../ports/extraction-source.ts";
 import type { StorePort } from "../ports/store.ts";
+import type { ProgressListener } from "./progress.ts";
 
 const TRANSCRIPT_FILE = "transcript.md";
 const PROMPT_FILE = "prompt.md";
@@ -29,6 +30,12 @@ export type RunExtractionOptions = {
    * ordering of saves without freezing global time.
    */
   readonly now?: () => string;
+  /**
+   * Called synchronously as phases start and finish. Deliberately not wrapped
+   * in try/catch: a listener that throws is a wiring bug, and swallowing it
+   * would leave the run silently half-observed.
+   */
+  readonly onProgress?: ProgressListener;
 };
 
 export type RunExtractionResult = {
@@ -74,8 +81,11 @@ export async function runExtraction(
   const preferredLang = options.preferredLang ?? null;
   const force = options.force ?? false;
   const now = options.now ?? (() => new Date().toISOString());
+  const onProgress = options.onProgress ?? (() => {});
 
+  onProgress({ kind: "phase:start", phase: "identify" });
   const identity = await source.identify(input);
+  onProgress({ kind: "phase:done", phase: "identify", outcome: "fresh" });
   const previous = await store.findRun(identity.externalId);
 
   if (previous !== null && !force && firstIncompleteStep(previous) === null) {
@@ -88,15 +98,24 @@ export async function runExtraction(
         (await store.readArtifact(workDir, PROMPT_FILE)) !== null
           ? path.join(workDir, PROMPT_FILE)
           : null;
+      onProgress({ kind: "run:answered-from-disk", dirName: previous.dirName });
       return { transcriptPath: path.join(workDir, TRANSCRIPT_FILE), promptPath, record: previous };
     }
     // Finished on paper but the transcript is gone; fall through and rebuild.
   }
 
+  // Force disowns the previous run entirely, so announcing a resume under it
+  // would promise continuity the reset is about to destroy.
+  if (previous !== null && !force) {
+    onProgress({ kind: "run:resumed", dirName: previous.dirName });
+  }
+
   let workDir: WorkDir;
   let dirName: string;
   let metadata: VideoMetadata;
+  let metadataLoaded = false;
 
+  onProgress({ kind: "phase:start", phase: "metadata" });
   if (previous !== null) {
     dirName = previous.dirName;
     workDir = await store.openWorkDir(dirName);
@@ -105,6 +124,7 @@ export async function runExtraction(
     }
     // After a reset there is nothing to load; otherwise disk beats network.
     const loaded = force ? null : await source.loadMetadata(workDir);
+    metadataLoaded = loaded !== null;
     metadata =
       loaded !== null ? loaded.metadata : (await source.fetchMetadata(identity, workDir)).metadata;
   } else {
@@ -120,8 +140,17 @@ export async function runExtraction(
       workDir = await store.renameWorkDir(workDir, dirName);
     }
   }
+  onProgress({ kind: "phase:done", phase: "metadata", outcome: metadataLoaded ? "cached" : "fresh" });
+  // Even cached metadata is news to whoever is watching this run.
+  onProgress({
+    kind: "video:identified",
+    title: metadata.title,
+    uploader: metadata.uploader,
+    durationSec: metadata.durationSec,
+  });
 
   const { track } = selectTrack(metadata.captionTracks, metadata.originalLanguage, preferredLang);
+  onProgress({ kind: "track:selected", language: track.baseLanguage, captionKind: track.kind });
 
   const startedAt = now();
   let record = createRunRecord({
@@ -139,36 +168,54 @@ export async function runExtraction(
 
   // Best effort: the adapter answers with the existing cover on resume and
   // with null on any failure, so the step degrades to skipped instead of
-  // failing a run over a missing nicety.
+  // failing a run over a missing nicety. The event mirrors that: non-null is
+  // reported "fresh" even on resume, because the adapter does not say whether
+  // the cover was fetched or found.
+  onProgress({ kind: "phase:start", phase: "thumbnail" });
   const thumbnail = await source.fetchThumbnail(metadata, workDir);
   const thumbnailStatus = thumbnail !== null ? "complete" : "skipped";
+  onProgress({
+    kind: "phase:done",
+    phase: "thumbnail",
+    outcome: thumbnail !== null ? "fresh" : "skipped",
+  });
   record = withStep(record, "thumbnail_downloaded", thumbnailStatus, now());
   await store.saveRun(record);
 
+  onProgress({ kind: "phase:start", phase: "captions" });
   const loadedCaptions = previous !== null && !force ? await source.loadCaptions(track, workDir) : null;
   const document =
     loadedCaptions !== null
       ? loadedCaptions.document
       : (await source.fetchCaptions(identity, track, workDir)).document;
+  onProgress({
+    kind: "phase:done",
+    phase: "captions",
+    outcome: loadedCaptions !== null ? "cached" : "fresh",
+  });
   record = withStep(record, "captions_downloaded", "complete", now());
   await store.saveRun(record);
 
+  onProgress({ kind: "phase:start", phase: "transcript" });
   const chaptered = assignChapters(document.cues, metadata.chapters);
   const paragraphs = segmentParagraphs(chaptered);
   const markdown = renderTranscript(metadata, paragraphs);
   const artifact = await store.writeArtifact(workDir, TRANSCRIPT_FILE, markdown);
+  onProgress({ kind: "phase:done", phase: "transcript", outcome: "fresh" });
 
   record = withStep(record, "transcript_normalized", "complete", now());
   await store.saveRun(record);
 
   // The prompt speaks about the transcript, so it is written in the language
   // of the track that was actually downloaded — not the video's original one.
+  onProgress({ kind: "phase:start", phase: "prompt" });
   const prompt = buildNotesPrompt(metadata, track.baseLanguage, {
     transcriptPath: path.join(workDir, artifact.relPath),
     packageName: dirName,
     thumbnailPath: thumbnail !== null ? path.join(workDir, thumbnail.file.relPath) : null,
   });
   const promptArtifact = await store.writeArtifact(workDir, PROMPT_FILE, prompt);
+  onProgress({ kind: "phase:done", phase: "prompt", outcome: "fresh" });
 
   record = withStep(record, "prompt_generated", "complete", now());
   await store.saveRun(record);
