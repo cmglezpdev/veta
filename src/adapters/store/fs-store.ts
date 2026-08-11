@@ -86,7 +86,7 @@ function parseIndex(value: unknown): readonly RunSummary[] | null {
   return runs;
 }
 
-function byNewestFirst(a: RunSummary, b: RunSummary): number {
+function byNewestFirst(a: { readonly updatedAt: string }, b: { readonly updatedAt: string }): number {
   return b.updatedAt.localeCompare(a.updatedAt);
 }
 
@@ -136,6 +136,12 @@ export class FsStore implements StorePort {
   async listRuns(): Promise<readonly RunSummary[]> {
     const entries = await this.#loadEntries();
     return [...entries].sort(byNewestFirst);
+  }
+
+  async listRunRecords(): Promise<readonly RunRecord[]> {
+    // Always a scan, never the index: summaries carry no steps, and status
+    // derivation needs the full records.
+    return [...(await this.#scan())].sort(byNewestFirst);
   }
 
   async rebuildIndex(): Promise<{ readonly recovered: number }> {
