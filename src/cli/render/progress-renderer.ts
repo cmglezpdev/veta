@@ -1,3 +1,4 @@
+import type { CaptionKind } from "../../domain/video/metadata.ts";
 import type { PhaseOutcome, ProgressListener, ProgressPhase } from "../../pipeline/progress.ts";
 
 /**
@@ -43,6 +44,18 @@ const FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "
 /** Carriage return plus erase-to-end: redraw in place without flicker. */
 const CLEAR_LINE = "\r\x1b[K";
 
+/**
+ * `H:MM:SS` past the hour, `M:SS` below it. Seconds are always padded;
+ * minutes only when an hour precedes them, so `0:47` stays `0:47`.
+ */
+function formatDuration(totalSec: number): string {
+  const hours = Math.floor(totalSec / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = Math.floor(totalSec % 60);
+  const ss = String(seconds).padStart(2, "0");
+  return hours > 0 ? `${hours}:${String(minutes).padStart(2, "0")}:${ss}` : `${minutes}:${ss}`;
+}
+
 const DEFAULT_INTERVAL_MS = 80;
 
 /**
@@ -75,6 +88,9 @@ export function createProgressRenderer(
   let livePhase: ProgressPhase | null = null;
   let frame = 0;
   let timer: NodeJS.Timeout | null = null;
+  // The track announcement arrives before the captions phase even starts, but
+  // it belongs on the captions done line — held here until that line prints.
+  let pendingTrack: { readonly language: string; readonly captionKind: CaptionKind } | null = null;
 
   const stopSpinner = (): void => {
     if (timer !== null) {
@@ -100,6 +116,17 @@ export function createProgressRenderer(
     }
   };
 
+  /** The captions done line names what was downloaded, if a track was announced. */
+  const trackSuffix = (): string => {
+    if (pendingTrack === null) {
+      return "";
+    }
+    const kind = pendingTrack.captionKind === "asr" ? "auto-generated" : "manual";
+    const suffix = ` ${paint(2, `(${pendingTrack.language}, ${kind})`)}`;
+    pendingTrack = null;
+    return suffix;
+  };
+
   const onEvent: ProgressListener = (event) => {
     switch (event.kind) {
       case "phase:start": {
@@ -120,7 +147,25 @@ export function createProgressRenderer(
       case "phase:done": {
         livePhase = null;
         stopSpinner();
-        writeLine(doneLine(event.phase, event.outcome));
+        writeLine(
+          event.phase === "captions"
+            ? `${doneLine(event.phase, event.outcome)}${trackSuffix()}`
+            : doneLine(event.phase, event.outcome),
+        );
+        return;
+      }
+      // One indented line of identity under the metadata check: the title in
+      // the terminal's own color, the incidentals dimmed behind it.
+      case "video:identified": {
+        const duration = formatDuration(event.durationSec);
+        const tail =
+          event.uploader !== null ? ` — ${event.uploader} · ${duration}` : ` · ${duration}`;
+        writeLine(`  ${event.title}${paint(2, tail)}`);
+        return;
+      }
+      // Nothing to draw yet — the selection reads best on the captions line.
+      case "track:selected": {
+        pendingTrack = { language: event.language, captionKind: event.captionKind };
         return;
       }
       // The directory name is what the user acts on; bold makes it the one

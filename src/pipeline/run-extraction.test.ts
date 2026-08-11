@@ -351,6 +351,15 @@ describe("runExtraction progress", () => {
       { kind: "phase:done", phase: "identify", outcome: "fresh" },
       { kind: "phase:start", phase: "metadata" },
       { kind: "phase:done", phase: "metadata", outcome: "fresh" },
+      // The facts arrive as data, in pipeline vocabulary: the renderer decides
+      // how a duration or a track kind reads on screen.
+      {
+        kind: "video:identified",
+        title: "Building OpenCode with Dax Raad",
+        uploader: "The Pragmatic Engineer",
+        durationSec: 4861,
+      },
+      { kind: "track:selected", language: "en", captionKind: "asr" },
       { kind: "phase:start", phase: "thumbnail" },
       { kind: "phase:done", phase: "thumbnail", outcome: "fresh" },
       { kind: "phase:start", phase: "captions" },
@@ -383,6 +392,15 @@ describe("runExtraction progress", () => {
       { kind: "run:resumed", dirName: PACKAGE_DIR },
       { kind: "phase:start", phase: "metadata" },
       { kind: "phase:done", phase: "metadata", outcome: "cached" },
+      // Cached metadata still identifies the video: the facts came from disk,
+      // but the user watching this run has not seen them yet.
+      {
+        kind: "video:identified",
+        title: "Building OpenCode with Dax Raad",
+        uploader: "The Pragmatic Engineer",
+        durationSec: 4861,
+      },
+      { kind: "track:selected", language: "en", captionKind: "asr" },
       { kind: "phase:start", phase: "thumbnail" },
       { kind: "phase:done", phase: "thumbnail", outcome: "fresh" },
       { kind: "phase:start", phase: "captions" },

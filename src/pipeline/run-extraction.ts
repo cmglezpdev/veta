@@ -141,8 +141,16 @@ export async function runExtraction(
     }
   }
   onProgress({ kind: "phase:done", phase: "metadata", outcome: metadataLoaded ? "cached" : "fresh" });
+  // Even cached metadata is news to whoever is watching this run.
+  onProgress({
+    kind: "video:identified",
+    title: metadata.title,
+    uploader: metadata.uploader,
+    durationSec: metadata.durationSec,
+  });
 
   const { track } = selectTrack(metadata.captionTracks, metadata.originalLanguage, preferredLang);
+  onProgress({ kind: "track:selected", language: track.baseLanguage, captionKind: track.kind });
 
   const startedAt = now();
   let record = createRunRecord({

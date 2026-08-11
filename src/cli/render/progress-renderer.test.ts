@@ -279,3 +279,143 @@ describe("createProgressRenderer (TTY, color)", () => {
     expect(stream.writes.join("")).not.toContain("\x1b");
   });
 });
+
+describe("createProgressRenderer video:identified", () => {
+  it("formats durations as M:SS below the hour and H:MM:SS above it", () => {
+    const stream = captureStream();
+    const renderer = createProgressRenderer(stream, { isTTY: false });
+
+    renderer.onEvent(
+      event({ kind: "video:identified", title: "Short", uploader: null, durationSec: 47 }),
+    );
+    renderer.onEvent(
+      event({ kind: "video:identified", title: "Talk", uploader: null, durationSec: 2537 }),
+    );
+    renderer.onEvent(
+      event({ kind: "video:identified", title: "Long", uploader: null, durationSec: 3909 }),
+    );
+
+    expect(stream.writes).toEqual([
+      "  Short · 0:47\n",
+      "  Talk · 42:17\n",
+      "  Long · 1:05:09\n",
+    ]);
+  });
+
+  it("prints the indented plain line with uploader and duration, no ANSI", () => {
+    const stream = captureStream();
+    const renderer = createProgressRenderer(stream, { isTTY: false });
+
+    renderer.onEvent(
+      event({
+        kind: "video:identified",
+        title: "Building OpenCode with Dax Raad",
+        uploader: "The Pragmatic Engineer",
+        durationSec: 4861,
+      }),
+    );
+
+    expect(stream.writes).toEqual([
+      "  Building OpenCode with Dax Raad — The Pragmatic Engineer · 1:21:01\n",
+    ]);
+    expect(stream.writes.join("")).not.toContain("\x1b");
+  });
+
+  it("drops the uploader segment when the source did not name one", () => {
+    const stream = captureStream();
+    const renderer = createProgressRenderer(stream, { isTTY: false });
+
+    renderer.onEvent(
+      event({ kind: "video:identified", title: "Mystery Upload", uploader: null, durationSec: 65 }),
+    );
+
+    expect(stream.writes).toEqual(["  Mystery Upload · 1:05\n"]);
+  });
+
+  it("keeps the title in default color and dims only the tail in color mode", () => {
+    const stream = captureStream();
+    const renderer = createProgressRenderer(stream, { isTTY: true });
+
+    renderer.onEvent(
+      event({
+        kind: "video:identified",
+        title: "Building OpenCode with Dax Raad",
+        uploader: "The Pragmatic Engineer",
+        durationSec: 4861,
+      }),
+    );
+
+    expect(stream.writes).toEqual([
+      "\r\x1b[K  Building OpenCode with Dax Raad\x1b[2m — The Pragmatic Engineer · 1:21:01\x1b[0m\n",
+    ]);
+  });
+
+  it("dims the whole tail even without an uploader", () => {
+    const stream = captureStream();
+    const renderer = createProgressRenderer(stream, { isTTY: true });
+
+    renderer.onEvent(
+      event({ kind: "video:identified", title: "Mystery Upload", uploader: null, durationSec: 47 }),
+    );
+
+    expect(stream.writes).toEqual(["\r\x1b[K  Mystery Upload\x1b[2m · 0:47\x1b[0m\n"]);
+  });
+});
+
+describe("createProgressRenderer track:selected", () => {
+  it("suffixes the captions done line with the language and manual kind", () => {
+    const stream = captureStream();
+    const renderer = createProgressRenderer(stream, { isTTY: false });
+
+    renderer.onEvent(event({ kind: "track:selected", language: "es", captionKind: "manual" }));
+    renderer.onEvent(event({ kind: "phase:done", phase: "captions", outcome: "fresh" }));
+
+    expect(stream.writes).toEqual(["ok Downloading captions (es, manual)\n"]);
+    expect(stream.writes.join("")).not.toContain("\x1b");
+  });
+
+  it("spells asr out as auto-generated", () => {
+    const stream = captureStream();
+    const renderer = createProgressRenderer(stream, { isTTY: false });
+
+    renderer.onEvent(event({ kind: "track:selected", language: "en", captionKind: "asr" }));
+    renderer.onEvent(event({ kind: "phase:done", phase: "captions", outcome: "fresh" }));
+
+    expect(stream.writes).toEqual(["ok Downloading captions (en, auto-generated)\n"]);
+  });
+
+  it("dims the suffix behind the green check in color mode", () => {
+    const stream = captureStream();
+    const renderer = createProgressRenderer(stream, { isTTY: true });
+
+    renderer.onEvent(event({ kind: "track:selected", language: "en", captionKind: "asr" }));
+    renderer.onEvent(event({ kind: "phase:done", phase: "captions", outcome: "fresh" }));
+
+    expect(stream.writes).toEqual([
+      "\r\x1b[K\x1b[32m✓\x1b[0m Downloading captions \x1b[2m(en, auto-generated)\x1b[0m\n",
+    ]);
+  });
+
+  it("renders the captions line exactly as before when no track was announced", () => {
+    const stream = captureStream();
+    const renderer = createProgressRenderer(stream, { isTTY: false });
+
+    renderer.onEvent(event({ kind: "phase:done", phase: "captions", outcome: "fresh" }));
+
+    expect(stream.writes).toEqual(["ok Downloading captions\n"]);
+  });
+
+  it("consumes the remembered track: a later captions line carries no stale suffix", () => {
+    const stream = captureStream();
+    const renderer = createProgressRenderer(stream, { isTTY: false });
+
+    renderer.onEvent(event({ kind: "track:selected", language: "en", captionKind: "manual" }));
+    renderer.onEvent(event({ kind: "phase:done", phase: "captions", outcome: "fresh" }));
+    renderer.onEvent(event({ kind: "phase:done", phase: "captions", outcome: "fresh" }));
+
+    expect(stream.writes).toEqual([
+      "ok Downloading captions (en, manual)\n",
+      "ok Downloading captions\n",
+    ]);
+  });
+});

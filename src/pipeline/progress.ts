@@ -9,6 +9,8 @@
  * (`skipped`), because "instant" and "downloaded" deserve different lines.
  */
 
+import type { CaptionKind } from "../domain/video/metadata.ts";
+
 export type ProgressPhase =
   | "identify"
   | "metadata"
@@ -22,6 +24,18 @@ export type PhaseOutcome = "fresh" | "cached" | "skipped";
 export type ProgressEvent =
   | { readonly kind: "phase:start"; readonly phase: ProgressPhase }
   | { readonly kind: "phase:done"; readonly phase: ProgressPhase; readonly outcome: PhaseOutcome }
+  /**
+   * The metadata phase learned what video this is. Raw facts only — how a
+   * duration or an uploader reads on screen is the renderer's decision.
+   */
+  | {
+      readonly kind: "video:identified";
+      readonly title: string;
+      readonly uploader: string | null;
+      readonly durationSec: number;
+    }
+  /** Which caption track the run will download; `language` is its base subtag. */
+  | { readonly kind: "track:selected"; readonly language: string; readonly captionKind: CaptionKind }
   /** A previous unfinished record was found and is being continued. */
   | { readonly kind: "run:resumed"; readonly dirName: string }
   /** A finished run answered entirely from disk; no phase beyond identify ran. */
