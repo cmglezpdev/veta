@@ -428,6 +428,69 @@ describe("FsStore.resetWorkDir", () => {
   });
 });
 
+describe("FsStore.purge", () => {
+  it("removes every package directory and the index, and reports the count", async () => {
+    const { store, dataDir } = await tempStore();
+    await store.saveRun(record({ externalId: "a", dirName: "one" }));
+    await store.saveRun(record({ externalId: "b", dirName: "two" }));
+
+    const result = await store.purge();
+
+    expect(result).toEqual({ removed: 2 });
+    const left = await readdir(dataDir);
+    expect(left).not.toContain("one");
+    expect(left).not.toContain("two");
+    expect(left).not.toContain("index.json");
+  });
+
+  it("leaves foreign entries in the data directory untouched", async () => {
+    const { store, dataDir } = await tempStore();
+    await store.saveRun(record({ externalId: "a", dirName: "my-video" }));
+    await mkdir(path.join(dataDir, "no-state-here"), { recursive: true });
+    await writeFile(path.join(dataDir, "loose-file.md"), "not ours", "utf8");
+    await writeFile(path.join(dataDir, ".dotfile"), "not ours either", "utf8");
+
+    const result = await store.purge();
+
+    expect(result).toEqual({ removed: 1 });
+    expect((await readdir(dataDir)).sort()).toEqual([".dotfile", "loose-file.md", "no-state-here"]);
+  });
+
+  it("removes a torn index write alongside the index itself", async () => {
+    const { store, dataDir } = await tempStore();
+    await store.saveRun(record({ externalId: "a", dirName: "my-video" }));
+    await writeFile(path.join(dataDir, "index.json.partial"), '{"runs": [', "utf8");
+
+    await store.purge();
+
+    const left = await readdir(dataDir);
+    expect(left).not.toContain("index.json");
+    expect(left).not.toContain("index.json.partial");
+  });
+
+  it("reports zero on an empty data directory", async () => {
+    const { store } = await tempStore();
+
+    expect(await store.purge()).toEqual({ removed: 0 });
+  });
+
+  it("reports zero on a data directory that does not exist yet", async () => {
+    const dataDir = path.join(await mkdtemp(path.join(tmpdir(), "veta-store-")), "not-created");
+    roots.push(path.dirname(dataDir));
+
+    expect(await new FsStore({ dataDir }).purge()).toEqual({ removed: 0 });
+  });
+
+  it("leaves nothing for listRuns to find", async () => {
+    const { store } = await tempStore();
+    await store.saveRun(record({ externalId: "a", dirName: "my-video" }));
+
+    await store.purge();
+
+    expect(await store.listRuns()).toEqual([]);
+  });
+});
+
 describe("FsStore.replaceDir", () => {
   it("writes every file into the target directory", async () => {
     const { store } = await tempStore();

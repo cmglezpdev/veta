@@ -246,6 +246,21 @@ export class FsStore implements StorePort {
     }
   }
 
+  async purge(): Promise<{ readonly removed: number }> {
+    // The scan, not the index, decides what dies: the index may be stale or
+    // torn, and purge must take exactly the packages the store recognizes.
+    const scanned = await this.#scan();
+
+    for (const record of scanned) {
+      await rm(this.#packageDir(record.dirName), { force: true, recursive: true });
+    }
+
+    await rm(path.join(this.#dataDir, INDEX_FILE), { force: true });
+    await rm(path.join(this.#dataDir, `${INDEX_FILE}.partial`), { force: true });
+
+    return { removed: scanned.length };
+  }
+
   /** Resolve a package directory, refusing any name that is not a valid `dirName`. */
   #packageDir(dirName: string): string {
     if (!isValidDirName(dirName)) {

@@ -106,6 +106,7 @@ never anything else you keep in the folder.
 | `veta extract <url> [--lang <code>]` | Same, with an explicit preferred language (BCP-47) |
 | `veta extract <url> --force` | Re-extract from scratch, discarding prior progress |
 | `veta doctor` | Show which `yt-dlp` binary will be used |
+| `veta purge` | Delete all stored extraction data (asks for confirmation) |
 | `veta completion` | Print a shell completion script (zsh/bash) |
 
 ## Requirements

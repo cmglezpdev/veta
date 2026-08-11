@@ -1,10 +1,11 @@
 import { existsSync } from "node:fs";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { createRunRecord } from "../domain/run/run-record.ts";
 
 const binPath = fileURLToPath(new URL("../../bin/cli.js", import.meta.url));
 
@@ -30,6 +31,7 @@ describe("cli entrypoint", () => {
     expect(result.stdout).toMatch(/extract/i);
     expect(result.stdout).toMatch(/completion/i);
     expect(result.stdout).toMatch(/doctor/i);
+    expect(result.stdout).toMatch(/purge/i);
   });
 
   it("exits 0 for extract --help", () => {
@@ -69,6 +71,57 @@ describe("cli entrypoint", () => {
 
     expect(result.status).toBe(2);
     expect(result.stderr.length).toBeGreaterThan(0);
+  });
+});
+
+describe("purge command", () => {
+  let dataDir: string;
+  let packageDir: string;
+
+  beforeEach(async () => {
+    dataDir = await mkdtemp(path.join(tmpdir(), "veta-cli-purge-"));
+    packageDir = path.join(dataDir, "my-video");
+    await mkdir(packageDir, { recursive: true });
+    await writeFile(
+      path.join(packageDir, "state.json"),
+      JSON.stringify(
+        createRunRecord({
+          externalId: "abc",
+          dirName: "my-video",
+          selectedTrack: null,
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        }),
+      ),
+      "utf8",
+    );
+  });
+
+  afterEach(async () => {
+    await rm(dataDir, { recursive: true, force: true });
+  });
+
+  it("deletes the stored package when the user answers y", () => {
+    const result = spawnSync("node", [binPath, "purge"], {
+      encoding: "utf8",
+      input: "y\n",
+      env: { ...process.env, VETA_DATA_DIR: dataDir },
+    });
+
+    expect(result.status).toBe(0);
+    expect(existsSync(packageDir)).toBe(false);
+  });
+
+  it("leaves the stored package intact when the user just presses Enter", () => {
+    const result = spawnSync("node", [binPath, "purge"], {
+      encoding: "utf8",
+      input: "",
+      env: { ...process.env, VETA_DATA_DIR: dataDir },
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stderr).toContain("Aborted");
+    expect(existsSync(packageDir)).toBe(true);
   });
 });
 
