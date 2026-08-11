@@ -10,6 +10,7 @@ import { copyToClipboard } from "./clipboard.ts";
 import { confirmEnter } from "./confirm.ts";
 import { exitCodeFor } from "./exit-codes.ts";
 import { extract } from "./extract.ts";
+import { purge } from "./purge.ts";
 import { createProgressRenderer } from "./render/progress-renderer.ts";
 
 /**
@@ -138,6 +139,13 @@ async function runDoctor(): Promise<void> {
   );
 }
 
+async function runPurge(): Promise<void> {
+  const store = new FsStore({ dataDir: dataDirFromEnv() });
+  await purge(store, process.stdin, process.stderr);
+  // readline leaves stdin flowing; release it so the process can exit.
+  process.stdin.pause();
+}
+
 function buildProgram(argv: readonly string[]) {
   return buildCliProgram(
     {
@@ -145,6 +153,7 @@ function buildProgram(argv: readonly string[]) {
         await runExtract(url, lang, force);
       },
       doctor: runDoctor,
+      purge: runPurge,
     },
     argv,
   ).fail((msg, error) => {

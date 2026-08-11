@@ -25,4 +25,10 @@ export interface StorePort {
   readArtifact(dir: WorkDir, relPath: string): Promise<Uint8Array | null>;
   replaceDir(dir: WorkDir, relDir: string, files: ReadonlyMap<string, string>): Promise<void>;
   resetWorkDir(dir: WorkDir): Promise<void>;
+  /**
+   * Permanently delete every stored package directory and the index, leaving
+   * foreign entries in the data directory untouched. Returns the number of
+   * package directories removed.
+   */
+  purge(): Promise<{ readonly removed: number }>;
 }

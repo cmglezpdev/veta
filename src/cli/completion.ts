@@ -8,6 +8,6 @@ const noop = async (): Promise<void> => {};
  * Invoked from the composition root before config, store, or yt-dlp imports.
  */
 export function runCompletionArgv(argv: readonly string[]): never {
-  buildCliProgram({ extract: noop, doctor: noop }, argv).parseSync();
+  buildCliProgram({ extract: noop, doctor: noop, purge: noop }, argv).parseSync();
   process.exit(0);
 }
