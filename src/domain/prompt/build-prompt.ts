@@ -10,6 +10,12 @@ export type PromptTarget = {
    * notes folder, so notes and package identify the same video by the same name.
    */
   readonly packageName: string;
+  /**
+   * Absolute path to the downloaded cover image inside the data directory, or
+   * `null` when the package has none — the prompt then says nothing about a
+   * cover at all.
+   */
+  readonly thumbnailPath: string | null;
 };
 
 /**
@@ -38,6 +44,9 @@ export function buildNotesPrompt(
   target: PromptTarget,
 ): string {
   const notesDir = target.packageName;
+  // The cover keeps whatever extension the source gave it, so the file name
+  // is read off the path rather than assumed.
+  const coverName = target.thumbnailPath?.replace(/^.*[/\\]/, "") ?? null;
   const blocks: string[] = [
     "# Build study notes from this video's transcript",
     "",
@@ -76,12 +85,22 @@ export function buildNotesPrompt(
       "short summary of what the video covers, the complete topic breakdown as " +
       "an ordered list where each entry links to its topic file, and a closing " +
       "`## Key takeaways` section (below). Add a mermaid overview diagram when " +
-      "it genuinely clarifies the video's structure; skip it otherwise.",
+      "it genuinely clarifies the video's structure; skip it otherwise." +
+      (coverName === null
+        ? ""
+        : " Embed the cover image at the top of the README, right under the title."),
     "- One file per topic, named with a zero-padded " +
       `order prefix (\`${notesDir}/01-introduction.md\`, \`${notesDir}/02-architecture.md\`, ...).`,
     `- \`${notesDir}/transcript.md\` — a verbatim copy of the transcript file ` +
       "named above. Copy it as-is, without editing, so the notes folder stands " +
       "alone for future questions about the video.",
+    ...(coverName === null
+      ? []
+      : [
+          `- \`${notesDir}/${coverName}\` — a copy of the video's cover image at ` +
+            `\`${target.thumbnailPath}\`. Copy it as-is, without editing, so the ` +
+            "README's embed works wherever the notes folder ends up.",
+        ]),
     "",
     "### The `## Key takeaways` section",
     "",

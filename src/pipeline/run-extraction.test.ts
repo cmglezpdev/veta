@@ -15,6 +15,7 @@ const FIXTURES = path.join(
 );
 const INFO_FIXTURE = path.join(FIXTURES, "info.json");
 const CAPTION_FIXTURE = path.join(FIXTURES, "captions.en.json3");
+const THUMBNAIL_FIXTURE = path.join(FIXTURES, "thumbnail.png");
 
 const VIDEO_ID = "1VqKUrxR2C8";
 const PACKAGE_DIR = "building-opencode-with-dax-raad";
@@ -25,6 +26,7 @@ let binary: string;
 let previousBinaryPath: string | undefined;
 let previousCaptionsFail: string | undefined;
 let previousInfoFail: string | undefined;
+let previousThumbnailFail: string | undefined;
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`;
@@ -53,21 +55,25 @@ beforeEach(async () => {
   previousBinaryPath = process.env["VETA_YTDLP_PATH"];
   previousCaptionsFail = process.env["VETA_FAKE_CAPTIONS_FAIL"];
   previousInfoFail = process.env["VETA_FAKE_INFO_FAIL"];
+  previousThumbnailFail = process.env["VETA_FAKE_THUMBNAIL_FAIL"];
 
-  // A real executable, not a double. `VETA_FAKE_CAPTIONS_FAIL` and
-  // `VETA_FAKE_INFO_FAIL` let a test make either fetch fail the way the
-  // network does, without touching what is already on disk.
+  // A real executable, not a double. `VETA_FAKE_CAPTIONS_FAIL`,
+  // `VETA_FAKE_INFO_FAIL`, and `VETA_FAKE_THUMBNAIL_FAIL` let a test make any
+  // fetch fail the way the network does, without touching what is already on
+  // disk.
   const body = `#!/bin/sh
 set -eu
 output=''
 language='en'
 write_info=0
 write_captions=0
+write_thumbnail=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --version) printf '%s\\n' '2026.07.31'; exit 0 ;;
     --write-info-json) write_info=1 ;;
     --write-subs|--write-auto-subs) write_captions=1 ;;
+    --write-thumbnail) write_thumbnail=1 ;;
     --sub-langs) shift; language="$1" ;;
     -o) shift; output="$1" ;;
   esac
@@ -87,12 +93,20 @@ if [ "$write_captions" -eq 1 ]; then
   fi
   cp ${shellQuote(CAPTION_FIXTURE)} "$output.$language.json3"
 fi
+if [ "$write_thumbnail" -eq 1 ]; then
+  if [ -n "\${VETA_FAKE_THUMBNAIL_FAIL:-}" ]; then
+    printf '%s\\n' 'ERROR: unable to download thumbnail' >&2
+    exit 1
+  fi
+  cp ${shellQuote(THUMBNAIL_FIXTURE)} "\${output#thumbnail:}.png"
+fi
 `;
   await writeFile(binary, body, "utf8");
   await chmod(binary, 0o755);
   process.env["VETA_YTDLP_PATH"] = binary;
   delete process.env["VETA_FAKE_CAPTIONS_FAIL"];
   delete process.env["VETA_FAKE_INFO_FAIL"];
+  delete process.env["VETA_FAKE_THUMBNAIL_FAIL"];
   resetBinaryCache();
 });
 
@@ -103,6 +117,8 @@ afterEach(async () => {
   else process.env["VETA_FAKE_CAPTIONS_FAIL"] = previousCaptionsFail;
   if (previousInfoFail === undefined) delete process.env["VETA_FAKE_INFO_FAIL"];
   else process.env["VETA_FAKE_INFO_FAIL"] = previousInfoFail;
+  if (previousThumbnailFail === undefined) delete process.env["VETA_FAKE_THUMBNAIL_FAIL"];
+  else process.env["VETA_FAKE_THUMBNAIL_FAIL"] = previousThumbnailFail;
   resetBinaryCache();
   await rm(root, { force: true, recursive: true });
 });
@@ -160,15 +176,31 @@ describe("runExtraction", () => {
     expect(record.steps.transcript_normalized).toBe("complete");
   });
 
-  it("marks the step veta does not implement yet as skipped, not pending", async () => {
-    // Left pending, this step would make `firstIncompleteStep` point at work
-    // that never happens, and no run would ever reach a finished state.
+  it("downloads the thumbnail into the package and marks the step complete", async () => {
     await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
       now: tickingClock(),
     });
 
     const record = await readState();
+    expect(record.steps.thumbnail_downloaded).toBe("complete");
+    expect(await readdir(path.join(dataDir, PACKAGE_DIR))).toContain("cover.png");
+  });
+
+  it("skips the thumbnail instead of failing the run when the download fails", async () => {
+    // The cover is a nicety, not a deliverable: a run that cannot get it
+    // still owes the user a transcript. Skipped keeps the record honest
+    // without stranding the run short of finished.
+    process.env["VETA_FAKE_THUMBNAIL_FAIL"] = "1";
+
+    const result = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+    });
+
+    const record = await readState();
     expect(record.steps.thumbnail_downloaded).toBe("skipped");
+    expect(record.steps.transcript_normalized).toBe("complete");
+    expect(await readdir(path.join(dataDir, PACKAGE_DIR))).not.toContain("cover.png");
+    expect(result.transcriptPath).toBe(path.join(dataDir, PACKAGE_DIR, "transcript.md"));
   });
 
   it("records the caption track key a resume would have to ask for again", async () => {
@@ -239,8 +271,24 @@ describe("runExtraction prompt generation", () => {
     // on the machine can find one and create the other.
     expect(prompt).toContain(path.join(dataDir, PACKAGE_DIR, "transcript.md"));
     expect(prompt).toContain(`${PACKAGE_DIR}/README.md`);
+    // The cover made it into the package, so the prompt has the assistant
+    // copy it too and embed it at the top of the README.
+    expect(prompt).toContain(`${PACKAGE_DIR}/cover.png`);
+    expect(prompt).toContain(path.join(dataDir, PACKAGE_DIR, "cover.png"));
 
     expect((await readState()).steps.prompt_generated).toBe("complete");
+  });
+
+  it("says nothing about a cover when the thumbnail was skipped", async () => {
+    process.env["VETA_FAKE_THUMBNAIL_FAIL"] = "1";
+
+    const result = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+    });
+
+    const prompt = await readFile(result.promptPath!, "utf8");
+    expect(prompt).not.toContain("cover.png");
+    expect(prompt).not.toContain("cover image");
   });
 
   it("returns the existing prompt when a finished run answers from disk", async () => {

@@ -11,12 +11,14 @@ import { YtDlpExtractionSource } from "./ytdlp-extraction-source.ts";
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), "__fixtures__");
 const INFO_FIXTURE = path.join(FIXTURES, "info.json");
 const CAPTION_FIXTURE = path.join(FIXTURES, "captions.en.json3");
+const THUMBNAIL_FIXTURE = path.join(FIXTURES, "thumbnail.png");
 
 let root: string;
 let binary: string;
 let argsLog: string;
 let previousBinaryPath: string | undefined;
 let previousPath: string | undefined;
+let previousThumbnailFail: string | undefined;
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`;
@@ -28,6 +30,7 @@ beforeEach(async () => {
   argsLog = path.join(root, "args.log");
   previousBinaryPath = process.env["VETA_YTDLP_PATH"];
   previousPath = process.env["PATH"];
+  previousThumbnailFail = process.env["VETA_FAKE_THUMBNAIL_FAIL"];
 
   const body = `#!/bin/sh
 set -eu
@@ -35,12 +38,14 @@ output=''
 language='en'
 write_info=0
 write_captions=0
+write_thumbnail=0
 for arg in "$@"; do printf '%s\\n' "$arg" >> ${shellQuote(argsLog)}; done
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --version) printf '%s\\n' '2026.07.31'; exit 0 ;;
     --write-info-json) write_info=1 ;;
     --write-subs|--write-auto-subs) write_captions=1 ;;
+    --write-thumbnail) write_thumbnail=1 ;;
     --sub-langs) shift; language="$1" ;;
     -o) shift; output="$1" ;;
   esac
@@ -52,10 +57,18 @@ fi
 if [ "$write_captions" -eq 1 ]; then
   cp ${shellQuote(CAPTION_FIXTURE)} "$output.$language.json3"
 fi
+if [ "$write_thumbnail" -eq 1 ]; then
+  if [ -n "\${VETA_FAKE_THUMBNAIL_FAIL:-}" ]; then
+    printf '%s\\n' 'ERROR: unable to download thumbnail' >&2
+    exit 1
+  fi
+  cp ${shellQuote(THUMBNAIL_FIXTURE)} "\${output#thumbnail:}.png"
+fi
 `;
   await writeFile(binary, body, "utf8");
   await chmod(binary, 0o755);
   process.env["VETA_YTDLP_PATH"] = binary;
+  delete process.env["VETA_FAKE_THUMBNAIL_FAIL"];
   resetBinaryCache();
 });
 
@@ -64,6 +77,8 @@ afterEach(async () => {
   else process.env["VETA_YTDLP_PATH"] = previousBinaryPath;
   if (previousPath === undefined) delete process.env["PATH"];
   else process.env["PATH"] = previousPath;
+  if (previousThumbnailFail === undefined) delete process.env["VETA_FAKE_THUMBNAIL_FAIL"];
+  else process.env["VETA_FAKE_THUMBNAIL_FAIL"] = previousThumbnailFail;
   resetBinaryCache();
   await rm(root, { force: true, recursive: true });
 });
@@ -162,11 +177,55 @@ describe("YtDlpExtractionSource", () => {
     expect(unavailable.summary).toMatch(/not ready/i);
   });
 
-  it("defers thumbnail downloading to a later slice", async () => {
+  it("downloads the thumbnail and renames it to cover at the package root", async () => {
     const source = new YtDlpExtractionSource();
     const workDir = asWorkDir(path.join(root, "work-thumbnail"));
     const identity = await source.identify("1VqKUrxR2C8");
     const { metadata } = await source.fetchMetadata(identity, workDir);
+
+    const result = await source.fetchThumbnail(metadata, workDir);
+    const invokedArgs = await readFile(argsLog, "utf8");
+
+    // The extension is yt-dlp's choice, not ours; the fake always picks png.
+    expect(result?.file.relPath).toBe("cover.png");
+    expect(result?.file.bytes).toBeGreaterThan(0);
+    expect(invokedArgs).toContain("--write-thumbnail");
+    expect(invokedArgs).toContain("--skip-download");
+    // The cover lives at the package root, not inside raw/.
+    expect((await readFile(path.join(workDir, "cover.png"))).length).toBe(result?.file.bytes);
+  });
+
+  it("returns an existing cover without invoking yt-dlp again", async () => {
+    const source = new YtDlpExtractionSource();
+    const workDir = asWorkDir(path.join(root, "work-thumbnail-resume"));
+    const identity = await source.identify("1VqKUrxR2C8");
+    const { metadata } = await source.fetchMetadata(identity, workDir);
+    const first = await source.fetchThumbnail(metadata, workDir);
+    const argsBefore = await readFile(argsLog, "utf8");
+
+    const second = await source.fetchThumbnail(metadata, workDir);
+
+    expect(second).toEqual(first);
+    expect(await readFile(argsLog, "utf8")).toBe(argsBefore);
+  });
+
+  it("returns null when the metadata names no thumbnail", async () => {
+    const source = new YtDlpExtractionSource();
+    const workDir = asWorkDir(path.join(root, "work-thumbnail-none"));
+    const identity = await source.identify("1VqKUrxR2C8");
+    const { metadata } = await source.fetchMetadata(identity, workDir);
+
+    await expect(
+      source.fetchThumbnail({ ...metadata, thumbnailUrl: null }, workDir),
+    ).resolves.toBeNull();
+  });
+
+  it("returns null instead of throwing when the download fails", async () => {
+    const source = new YtDlpExtractionSource();
+    const workDir = asWorkDir(path.join(root, "work-thumbnail-fail"));
+    const identity = await source.identify("1VqKUrxR2C8");
+    const { metadata } = await source.fetchMetadata(identity, workDir);
+    process.env["VETA_FAKE_THUMBNAIL_FAIL"] = "1";
 
     await expect(source.fetchThumbnail(metadata, workDir)).resolves.toBeNull();
   });

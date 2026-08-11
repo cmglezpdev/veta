@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, stat } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, stat } from "node:fs/promises";
 import path from "node:path";
 import { VetaError } from "../../domain/errors/veta-error.ts";
 import type { CaptionTrack, VideoMetadata } from "../../domain/video/metadata.ts";
@@ -18,6 +18,10 @@ const SOURCE_ID = "yt-dlp";
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 const SAFE_SOURCE_KEY = /^[A-Za-z0-9_-]+$/;
 const INFO_REL_PATH = "raw/info.json";
+/** Same shape the store's reset knows: the cover keeps the source's extension. */
+const COVER_NAME = /^cover\.[a-z0-9]+$/i;
+/** What `--write-thumbnail` leaves under the `raw/source` output stem. */
+const PRODUCED_THUMBNAIL = /^source\.[a-z0-9]+$/i;
 
 function captionsRelPath(track: CaptionTrack): string {
   return `raw/captions.${track.sourceKey}.json3`;
@@ -128,11 +132,57 @@ export class YtDlpExtractionSource implements ExtractionSourcePort {
   }
 
   async fetchThumbnail(
-    _metadata: VideoMetadata,
-    _workDir: WorkDir,
+    metadata: VideoMetadata,
+    workDir: WorkDir,
   ): Promise<{ file: RawArtifact } | null> {
-    // Thumbnail transfer belongs to a later slice; metadata still exposes its URL.
-    return null;
+    // Best effort by contract: a package without its cover is still a
+    // package, so every failure here — yt-dlp, filesystem, anything —
+    // degrades to null and the run carries on.
+    try {
+      // A cover already at the package root answers a resume without the
+      // network; its extension was the source's choice, so scan for the shape.
+      const existing = (await readdir(workDir)).find((entry) => COVER_NAME.test(entry));
+      if (existing !== undefined) {
+        const file = await stat(path.join(workDir, existing));
+        return { file: rawArtifact(existing, file.size) };
+      }
+
+      if (metadata.thumbnailUrl === null) return null;
+
+      const rawDir = path.join(workDir, "raw");
+      await mkdir(rawDir, { recursive: true });
+      const binary = await resolveYtDlpBinary();
+      const outputStem = path.join("raw", "source");
+
+      await invokeYtDlp(
+        binary.path,
+        [
+          "--no-playlist",
+          "--skip-download",
+          "--no-progress",
+          "--write-thumbnail",
+          "--socket-timeout",
+          "30",
+          "-o",
+          `thumbnail:${outputStem}`,
+          metadata.canonicalUrl ?? canonicalUrl(metadata.id),
+        ],
+        { cwd: workDir },
+      );
+
+      // yt-dlp picks the extension, so find whatever `raw/source.<ext>` appeared.
+      const produced = (await readdir(rawDir)).find((entry) => PRODUCED_THUMBNAIL.test(entry));
+      if (produced === undefined) return null;
+
+      const relPath = `cover${path.extname(produced)}`;
+      const destination = path.join(workDir, relPath);
+      await rename(path.join(rawDir, produced), destination);
+      const file = await stat(destination);
+
+      return { file: rawArtifact(relPath, file.size) };
+    } catch {
+      return null;
+    }
   }
 
   async fetchCaptions(

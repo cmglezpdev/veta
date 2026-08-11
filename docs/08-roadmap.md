@@ -57,9 +57,12 @@ doctor) **before** StorePort/resume so the command surface stabilizes first.
 
 **No longer deferred — prompt generation shipped.** `runExtraction` now builds
 `prompt.md` (pure `domain/prompt/build-prompt.ts`) beside `transcript.md` and
-records `prompt_generated` as `complete`; only `thumbnail_downloaded` remains
-`skipped`. Finished packages from before this slice keep `skipped` and are
-never rebuilt — the short-circuit reports a `null` prompt path for them. In a
+records `prompt_generated` as `complete`. `thumbnail_downloaded` is implemented
+too: the cover lands as `cover.<ext>` at the package root and the prompt tells
+the assistant to copy it into the notes folder and embed it at the top of the
+README; a failed or unavailable download records `skipped` and never fails the
+run. Finished packages from before these slices keep their recorded steps and
+are never rebuilt — the short-circuit reports a `null` prompt path for them. In a
 TTY, `veta extract` offers the prompt on stderr and copies it to the clipboard
 on plain Enter (`VETA_CLIPBOARD_CMD` overrides the platform command); stdout
 stays the single transcript-path line.

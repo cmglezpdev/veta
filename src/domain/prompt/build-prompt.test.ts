@@ -20,6 +20,12 @@ const BASE: VideoMetadata = {
 const TARGET: PromptTarget = {
   transcriptPath: "/home/user/.veta/building-opencode-vid123/transcript.md",
   packageName: "building-opencode-vid123",
+  thumbnailPath: null,
+};
+
+const COVERED: PromptTarget = {
+  ...TARGET,
+  thumbnailPath: "/home/user/.veta/building-opencode-vid123/cover.png",
 };
 
 describe("buildNotesPrompt", () => {
@@ -122,7 +128,40 @@ describe("buildNotesPrompt", () => {
     expect(prompt).toContain("what was done and what came of it");
   });
 
+  it("instructs the assistant to copy the cover into the notes folder", () => {
+    const prompt = buildNotesPrompt(BASE, "en", COVERED);
+
+    // Same self-containment rule as the transcript copy: the notes folder
+    // must not depend on the data directory staying where it is.
+    expect(prompt).toContain("building-opencode-vid123/cover.png`");
+    expect(prompt).toContain("/home/user/.veta/building-opencode-vid123/cover.png");
+  });
+
+  it("keeps the cover's actual extension instead of assuming one", () => {
+    const prompt = buildNotesPrompt(BASE, "en", {
+      ...TARGET,
+      thumbnailPath: "/home/user/.veta/building-opencode-vid123/cover.webp",
+    });
+
+    expect(prompt).toContain("building-opencode-vid123/cover.webp`");
+    expect(prompt).not.toContain("cover.png");
+  });
+
+  it("instructs the assistant to embed the cover at the top of the README", () => {
+    const prompt = buildNotesPrompt(BASE, "en", COVERED);
+
+    expect(prompt).toContain("Embed the cover image at the top of the README");
+  });
+
+  it("says nothing about a cover when the package has none", () => {
+    const prompt = buildNotesPrompt(BASE, "en", TARGET);
+
+    expect(prompt).not.toContain("cover image");
+    expect(prompt).not.toMatch(/cover\.[a-z0-9]+/);
+  });
+
   it("is deterministic: the same input renders the identical prompt", () => {
     expect(buildNotesPrompt(BASE, "es", TARGET)).toBe(buildNotesPrompt(BASE, "es", TARGET));
+    expect(buildNotesPrompt(BASE, "es", COVERED)).toBe(buildNotesPrompt(BASE, "es", COVERED));
   });
 });
