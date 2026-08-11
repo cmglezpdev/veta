@@ -10,6 +10,21 @@ export type ProgressStream = {
   readonly isTTY?: boolean;
 };
 
+/**
+ * The spinner's clock, injectable for the same reason the pipeline takes
+ * `now`: the repo's testing rule (docs/06) forbids faking global timers, so
+ * a test hands in its own timer and ticks it by hand instead.
+ */
+export type SpinnerTimer = {
+  set(tick: () => void, intervalMs: number): unknown;
+  clear(handle: unknown): void;
+};
+
+const GLOBAL_TIMER: SpinnerTimer = {
+  set: (tick, intervalMs) => setInterval(tick, intervalMs),
+  clear: (handle) => clearInterval(handle as NodeJS.Timeout),
+};
+
 export type ProgressRendererOptions = {
   /** Overrides the stream's own `isTTY`; absent both, plain mode wins. */
   readonly isTTY?: boolean;
@@ -20,6 +35,8 @@ export type ProgressRendererOptions = {
    * never see an escape code.
    */
   readonly useColor?: boolean;
+  /** Defaults to the real `setInterval` pair. */
+  readonly timer?: SpinnerTimer;
 };
 
 export type ProgressRenderer = {
@@ -78,6 +95,7 @@ export function createProgressRenderer(
   const isTTY = options.isTTY ?? stream.isTTY ?? false;
   const intervalMs = options.intervalMs ?? DEFAULT_INTERVAL_MS;
   const useColor = isTTY && (options.useColor ?? true);
+  const spinnerTimer = options.timer ?? GLOBAL_TIMER;
 
   // Every painted fragment carries its own reset, so no SGR ever stays open
   // across a `\n` or a `\r` redraw — a half-reset line would bleed color into
@@ -87,14 +105,16 @@ export function createProgressRenderer(
 
   let livePhase: ProgressPhase | null = null;
   let frame = 0;
-  let timer: NodeJS.Timeout | null = null;
+  // Wrapped so "no interval live" stays distinguishable even from a timer
+  // whose `set` legitimately returns null or undefined as its handle.
+  let timer: { readonly handle: unknown } | null = null;
   // The track announcement arrives before the captions phase even starts, but
   // it belongs on the captions done line — held here until that line prints.
   let pendingTrack: { readonly language: string; readonly captionKind: CaptionKind } | null = null;
 
   const stopSpinner = (): void => {
     if (timer !== null) {
-      clearInterval(timer);
+      spinnerTimer.clear(timer.handle);
       timer = null;
     }
   };
@@ -138,10 +158,12 @@ export function createProgressRenderer(
         frame = 0;
         stream.write(`${CLEAR_LINE}${paint(36, FRAMES[0])} ${LABELS[event.phase]}`);
         stopSpinner();
-        timer = setInterval(() => {
-          frame = (frame + 1) % FRAMES.length;
-          stream.write(`${CLEAR_LINE}${paint(36, FRAMES[frame]!)} ${LABELS[event.phase]}`);
-        }, intervalMs);
+        timer = {
+          handle: spinnerTimer.set(() => {
+            frame = (frame + 1) % FRAMES.length;
+            stream.write(`${CLEAR_LINE}${paint(36, FRAMES[frame]!)} ${LABELS[event.phase]}`);
+          }, intervalMs),
+        };
         return;
       }
       case "phase:done": {

@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { ProgressEvent } from "../../pipeline/progress.ts";
-import { createProgressRenderer } from "./progress-renderer.ts";
+import { createProgressRenderer, type SpinnerTimer } from "./progress-renderer.ts";
 
 function captureStream(): { writes: string[]; write(chunk: string): boolean } {
   const writes: string[] = [];
@@ -17,15 +17,47 @@ function event(e: ProgressEvent): ProgressEvent {
   return e;
 }
 
-afterEach(() => {
-  vi.useRealTimers();
-});
+/**
+ * Hand-written stand-in for the spinner interval, per the repo's injected-
+ * clock rule (docs/06, testing approach): the test advances frames by calling
+ * `tick()` itself instead of faking the global timers.
+ */
+function fakeSpinnerTimer(): {
+  readonly timer: SpinnerTimer;
+  readonly intervals: number[];
+  tick(): void;
+  live(): boolean;
+  clears(): number;
+} {
+  let onTick: (() => void) | null = null;
+  let clears = 0;
+  const intervals: number[] = [];
+  return {
+    intervals,
+    timer: {
+      set(tick: () => void, intervalMs: number): unknown {
+        onTick = tick;
+        intervals.push(intervalMs);
+        return tick;
+      },
+      clear(): void {
+        clears += 1;
+        onTick = null;
+      },
+    },
+    tick(): void {
+      onTick?.();
+    },
+    live: () => onTick !== null,
+    clears: () => clears,
+  };
+}
 
 describe("createProgressRenderer (non-TTY)", () => {
   it("prints plain start and done lines for a whole run, no ANSI, no timers", () => {
-    vi.useFakeTimers();
     const stream = captureStream();
-    const renderer = createProgressRenderer(stream, { isTTY: false });
+    const fake = fakeSpinnerTimer();
+    const renderer = createProgressRenderer(stream, { isTTY: false, timer: fake.timer });
 
     renderer.onEvent(event({ kind: "phase:start", phase: "identify" }));
     renderer.onEvent(event({ kind: "phase:done", phase: "identify", outcome: "fresh" }));
@@ -48,7 +80,9 @@ describe("createProgressRenderer (non-TTY)", () => {
       ].join(""),
     );
     expect(stream.writes.join("")).not.toContain("\x1b");
-    expect(vi.getTimerCount()).toBe(0);
+    // The plain dialect has nothing to animate, so it never touches the timer.
+    expect(fake.intervals).toEqual([]);
+    expect(fake.live()).toBe(false);
   });
 
   it("prints the answered-from-disk line", () => {
@@ -63,37 +97,52 @@ describe("createProgressRenderer (non-TTY)", () => {
 
 describe("createProgressRenderer (TTY)", () => {
   it("animates the spinner in place while a phase is live", () => {
-    vi.useFakeTimers();
     const stream = captureStream();
-    const renderer = createProgressRenderer(stream, { isTTY: true, useColor: false });
+    const fake = fakeSpinnerTimer();
+    const renderer = createProgressRenderer(stream, {
+      isTTY: true,
+      useColor: false,
+      timer: fake.timer,
+    });
 
     renderer.onEvent(event({ kind: "phase:start", phase: "identify" }));
     expect(stream.writes.at(-1)).toBe("\r\x1b[K⠋ Resolving video");
+    expect(fake.intervals).toEqual([80]);
 
-    vi.advanceTimersByTime(80);
+    fake.tick();
     expect(stream.writes.at(-1)).toBe("\r\x1b[K⠙ Resolving video");
 
-    vi.advanceTimersByTime(80);
+    fake.tick();
     expect(stream.writes.at(-1)).toBe("\r\x1b[K⠹ Resolving video");
   });
 
   it("replaces the spinner with a terminal line on done and stops the timer", () => {
-    vi.useFakeTimers();
     const stream = captureStream();
-    const renderer = createProgressRenderer(stream, { isTTY: true, useColor: false });
+    const fake = fakeSpinnerTimer();
+    const renderer = createProgressRenderer(stream, {
+      isTTY: true,
+      useColor: false,
+      timer: fake.timer,
+    });
 
     renderer.onEvent(event({ kind: "phase:start", phase: "captions" }));
-    vi.advanceTimersByTime(160);
+    fake.tick();
+    fake.tick();
     renderer.onEvent(event({ kind: "phase:done", phase: "captions", outcome: "fresh" }));
 
     expect(stream.writes.at(-1)).toBe("\r\x1b[K✓ Downloading captions\n");
-    expect(vi.getTimerCount()).toBe(0);
+    expect(fake.live()).toBe(false);
+    expect(fake.clears()).toBe(1);
   });
 
   it("marks cached and skipped outcomes on the terminal line", () => {
-    vi.useFakeTimers();
     const stream = captureStream();
-    const renderer = createProgressRenderer(stream, { isTTY: true, useColor: false });
+    const fake = fakeSpinnerTimer();
+    const renderer = createProgressRenderer(stream, {
+      isTTY: true,
+      useColor: false,
+      timer: fake.timer,
+    });
 
     renderer.onEvent(event({ kind: "phase:start", phase: "metadata" }));
     renderer.onEvent(event({ kind: "phase:done", phase: "metadata", outcome: "cached" }));
@@ -102,6 +151,7 @@ describe("createProgressRenderer (TTY)", () => {
 
     expect(stream.writes).toContain("\r\x1b[K✓ Fetching metadata (already on disk)\n");
     expect(stream.writes.at(-1)).toBe("\r\x1b[K- Downloading thumbnail (skipped)\n");
+    expect(fake.live()).toBe(false);
   });
 
   it("prints resumed and answered-from-disk as their own lines", () => {
@@ -118,22 +168,31 @@ describe("createProgressRenderer (TTY)", () => {
   });
 
   it("fail() crosses out the in-flight phase and stops the timer", () => {
-    vi.useFakeTimers();
     const stream = captureStream();
-    const renderer = createProgressRenderer(stream, { isTTY: true, useColor: false });
+    const fake = fakeSpinnerTimer();
+    const renderer = createProgressRenderer(stream, {
+      isTTY: true,
+      useColor: false,
+      timer: fake.timer,
+    });
 
     renderer.onEvent(event({ kind: "phase:start", phase: "captions" }));
-    vi.advanceTimersByTime(80);
+    fake.tick();
     renderer.fail();
 
     expect(stream.writes.at(-1)).toBe("\r\x1b[K✗ Downloading captions\n");
-    expect(vi.getTimerCount()).toBe(0);
+    expect(fake.live()).toBe(false);
+    expect(fake.clears()).toBe(1);
   });
 
   it("fail() with no live phase prints nothing", () => {
-    vi.useFakeTimers();
     const stream = captureStream();
-    const renderer = createProgressRenderer(stream, { isTTY: true, useColor: false });
+    const fake = fakeSpinnerTimer();
+    const renderer = createProgressRenderer(stream, {
+      isTTY: true,
+      useColor: false,
+      timer: fake.timer,
+    });
 
     renderer.onEvent(event({ kind: "phase:start", phase: "identify" }));
     renderer.onEvent(event({ kind: "phase:done", phase: "identify", outcome: "fresh" }));
@@ -141,25 +200,34 @@ describe("createProgressRenderer (TTY)", () => {
     renderer.fail();
 
     expect(stream.writes.length).toBe(before);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(fake.live()).toBe(false);
   });
 
   it("finish() clears a live spinner line and releases the timer", () => {
-    vi.useFakeTimers();
     const stream = captureStream();
-    const renderer = createProgressRenderer(stream, { isTTY: true, useColor: false });
+    const fake = fakeSpinnerTimer();
+    const renderer = createProgressRenderer(stream, {
+      isTTY: true,
+      useColor: false,
+      timer: fake.timer,
+    });
 
     renderer.onEvent(event({ kind: "phase:start", phase: "transcript" }));
     renderer.finish();
 
     expect(stream.writes.at(-1)).toBe("\r\x1b[K");
-    expect(vi.getTimerCount()).toBe(0);
+    expect(fake.live()).toBe(false);
+    expect(fake.clears()).toBe(1);
   });
 
   it("finish() with no live phase is a no-op", () => {
-    vi.useFakeTimers();
     const stream = captureStream();
-    const renderer = createProgressRenderer(stream, { isTTY: true, useColor: false });
+    const fake = fakeSpinnerTimer();
+    const renderer = createProgressRenderer(stream, {
+      isTTY: true,
+      useColor: false,
+      timer: fake.timer,
+    });
 
     renderer.onEvent(event({ kind: "phase:start", phase: "prompt" }));
     renderer.onEvent(event({ kind: "phase:done", phase: "prompt", outcome: "fresh" }));
@@ -167,17 +235,22 @@ describe("createProgressRenderer (TTY)", () => {
     renderer.finish();
 
     expect(stream.writes.length).toBe(before);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(fake.live()).toBe(false);
   });
 
   it("emits no SGR sequence when colors are off, only the line erase", () => {
-    vi.useFakeTimers();
     const stream = captureStream();
-    const renderer = createProgressRenderer(stream, { isTTY: true, useColor: false });
+    const fake = fakeSpinnerTimer();
+    const renderer = createProgressRenderer(stream, {
+      isTTY: true,
+      useColor: false,
+      timer: fake.timer,
+    });
 
     renderer.onEvent(event({ kind: "run:resumed", dirName: "my-video" }));
     renderer.onEvent(event({ kind: "phase:start", phase: "metadata" }));
-    vi.advanceTimersByTime(160);
+    fake.tick();
+    fake.tick();
     renderer.onEvent(event({ kind: "phase:done", phase: "metadata", outcome: "cached" }));
     renderer.onEvent(event({ kind: "phase:start", phase: "captions" }));
     renderer.fail();
@@ -188,31 +261,39 @@ describe("createProgressRenderer (TTY)", () => {
   });
 
   it("honours a custom interval and falls back to the stream's own isTTY", () => {
-    vi.useFakeTimers();
     const stream = { ...captureStream(), isTTY: true };
-    const renderer = createProgressRenderer(stream, { intervalMs: 200, useColor: false });
+    const fake = fakeSpinnerTimer();
+    const renderer = createProgressRenderer(stream, {
+      intervalMs: 200,
+      useColor: false,
+      timer: fake.timer,
+    });
 
     renderer.onEvent(event({ kind: "phase:start", phase: "identify" }));
-    vi.advanceTimersByTime(199);
+    // The interval is the renderer's ask; whether time has passed is the
+    // timer's business, so the seam receives the number and the test ticks.
+    expect(fake.intervals).toEqual([200]);
     expect(stream.writes.at(-1)).toBe("\r\x1b[K⠋ Resolving video");
-    vi.advanceTimersByTime(1);
+    fake.tick();
     expect(stream.writes.at(-1)).toBe("\r\x1b[K⠙ Resolving video");
     renderer.finish();
+    expect(fake.live()).toBe(false);
   });
 });
 
 describe("createProgressRenderer (TTY, color)", () => {
   it("defaults useColor to the resolved isTTY and paints the spinner frame cyan", () => {
-    vi.useFakeTimers();
     const stream = captureStream();
-    const renderer = createProgressRenderer(stream, { isTTY: true });
+    const fake = fakeSpinnerTimer();
+    const renderer = createProgressRenderer(stream, { isTTY: true, timer: fake.timer });
 
     renderer.onEvent(event({ kind: "phase:start", phase: "identify" }));
     expect(stream.writes.at(-1)).toBe("\r\x1b[K\x1b[36m⠋\x1b[0m Resolving video");
 
-    vi.advanceTimersByTime(80);
+    fake.tick();
     expect(stream.writes.at(-1)).toBe("\r\x1b[K\x1b[36m⠙\x1b[0m Resolving video");
     renderer.finish();
+    expect(fake.live()).toBe(false);
   });
 
   it("paints the check green, label untouched", () => {
@@ -245,15 +326,15 @@ describe("createProgressRenderer (TTY, color)", () => {
   });
 
   it("paints the cross red on fail()", () => {
-    vi.useFakeTimers();
     const stream = captureStream();
-    const renderer = createProgressRenderer(stream, { isTTY: true });
+    const fake = fakeSpinnerTimer();
+    const renderer = createProgressRenderer(stream, { isTTY: true, timer: fake.timer });
 
     renderer.onEvent(event({ kind: "phase:start", phase: "captions" }));
     renderer.fail();
 
     expect(stream.writes.at(-1)).toBe("\r\x1b[K\x1b[31m✗\x1b[0m Downloading captions\n");
-    expect(vi.getTimerCount()).toBe(0);
+    expect(fake.live()).toBe(false);
   });
 
   it("bolds the directory name the user will act on", () => {
