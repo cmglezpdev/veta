@@ -101,6 +101,27 @@ describe("buildNotesPrompt", () => {
     expect(prompt).toContain("copy");
   });
 
+  it("orders the README and closes it with a key-takeaways section", () => {
+    const prompt = buildNotesPrompt(BASE, "en", TARGET);
+
+    expect(prompt).toContain("in this order");
+    expect(prompt).toContain("Key takeaways");
+  });
+
+  it("separates the takeaways from the summary: what was established, with results", () => {
+    const prompt = buildNotesPrompt(BASE, "en", TARGET);
+
+    // The summary describes the video; the takeaways carry its conclusions.
+    expect(prompt).toContain("the takeaways say what it established");
+    expect(prompt).toContain("results, measurements, comparisons, decisions");
+  });
+
+  it("demands outcomes in every topic file, not just activity", () => {
+    const prompt = buildNotesPrompt(BASE, "en", TARGET);
+
+    expect(prompt).toContain("what was done and what came of it");
+  });
+
   it("is deterministic: the same input renders the identical prompt", () => {
     expect(buildNotesPrompt(BASE, "es", TARGET)).toBe(buildNotesPrompt(BASE, "es", TARGET));
   });

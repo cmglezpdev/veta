@@ -72,19 +72,34 @@ export function buildNotesPrompt(
     "",
     `Create a \`${notesDir}/\` folder in your current working directory containing:`,
     "",
-    `- \`${notesDir}/README.md\` — the root file. It holds the video title, a short ` +
-      "summary, and the complete topic breakdown as an ordered list where each " +
-      "entry links to its topic file. Add a mermaid overview diagram when it " +
-      "genuinely clarifies the video's structure; skip it otherwise.",
+    `- \`${notesDir}/README.md\` — the root file, in this order: the video title, a ` +
+      "short summary of what the video covers, the complete topic breakdown as " +
+      "an ordered list where each entry links to its topic file, and a closing " +
+      "`## Key takeaways` section (below). Add a mermaid overview diagram when " +
+      "it genuinely clarifies the video's structure; skip it otherwise.",
     "- One file per topic, named with a zero-padded " +
       `order prefix (\`${notesDir}/01-introduction.md\`, \`${notesDir}/02-architecture.md\`, ...).`,
     `- \`${notesDir}/transcript.md\` — a verbatim copy of the transcript file ` +
       "named above. Copy it as-is, without editing, so the notes folder stands " +
       "alone for future questions about the video.",
     "",
+    "### The `## Key takeaways` section",
+    "",
+    "The summary says what the video is about; the takeaways say what it " +
+      "established. Close the README with the conclusions a viewer should walk " +
+      "away with — results, measurements, comparisons, decisions — each as a " +
+      'bullet with its timestamp deep link. "They benchmarked the model" is ' +
+      'summary; "it beat model X by 80% on 3D generation but stalled on games" ' +
+      "is a takeaway. When the video genuinely establishes nothing — pure " +
+      "opinion, no claims — skip the section rather than padding it.",
+    "",
     "### Rules for every topic file",
     "",
     "- Be concise: capture the main points of each section, never re-transcribe it.",
+    "- Capture what each section teaches, not just what happens in it: when " +
+      "something is built, benchmarked, or demonstrated, record what was done " +
+      "and what came of it — names and numbers, never \"they tested it and it " +
+      "went well\".",
     "- Prefer enumerations and bullet points over prose.",
     "- Every key claim, definition, or data point ends with its timestamp deep " +
       "link copied from the transcript, cited like references in a paper, so the " +
