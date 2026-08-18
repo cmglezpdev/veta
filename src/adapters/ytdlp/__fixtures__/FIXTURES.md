@@ -78,6 +78,25 @@ A minimal valid 1×1 PNG (70 bytes), not a captured payload. The fake yt-dlp
 in the tests copies it wherever `--write-thumbnail` asks, so thumbnail
 handling exercises a real image file without committing a real cover.
 
+### `playlist.flat.json` — trimmed + hand-authored
+
+The first 5 entries of `docs/examples/yt-dlp-flat-playlist.json` (real
+capture, see that file's own `README.md`), trimmed to the fields
+`YtDlpPlaylistSource` reads. Two entries are appended by hand —
+`[Private video]` at position 6 and `[Deleted video]` at position 7 — since a
+real unavailable member could not be captured during slice 1's verification
+(see `docs/03-data-sources.md#playlist-listing---flat-playlist--j`). They
+encode the defensive assumption the code checks against, not a confirmed
+real payload.
+
+### `playlist.flat.oversized.json` — fully synthetic
+
+260 generated entries, padded with repeated thumbnail URLs to exceed 1 MiB
+total — execFile's default `maxBuffer`. Proves `YtDlpPlaylistSource.listMembers`
+sets an explicit `maxBuffer` rather than relying on the default: without that
+fix, parsing this fixture would fail with `ENOBUFS`. Not a captured payload;
+regenerable from a short script, not checked in.
+
 ### `stderr-success.txt`
 
 Real stderr from a clean exit-0 run. It carries an impersonation warning,

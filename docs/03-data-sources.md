@@ -166,6 +166,20 @@ to interpret them. Stripping them without also breaking paragraphs there
 would remove the signal and add nothing. See
 [Segmentation](05-segmentation.md#the-open-failure).
 
+## Playlist listing (`--flat-playlist -J`)
+
+Playlist membership is listed with `yt-dlp --ignore-config --flat-playlist -J <url>`:
+one JSON root with `entries[]`, no second network call for the playlist title.
+Verified 2026-08-18 against a real 13-video playlist — see
+`docs/examples/yt-dlp-flat-playlist.json` and its `README.md`. **A real
+private/deleted member entry could not be captured during that verification**
+(no such entry existed in the sampled playlists), so `YtDlpPlaylistSource`
+detects unavailability defensively — placeholder title (`[Private video]` /
+`[Deleted video]`), missing id, missing `duration`, or a non-YouTube
+`ie_key` — rather than from a confirmed real payload; the fixture entries
+that exercise this path (`src/adapters/ytdlp/__fixtures__/playlist.flat.json`)
+are hand-authored, not captured.
+
 ## Test fixtures
 
 Parsing is tested against real captured payloads, not hand-written JSON. Hand

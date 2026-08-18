@@ -1,0 +1,596 @@
+{
+  "id": "PL9omX6impEuMgDFCK_NleIB0sMzKs2boI",
+  "title": "LLM evaluation course",
+  "availability": "public",
+  "channel_follower_count": null,
+  "description": "LLM evaluations for AI product teams. A gentle introduction to evaluating LLM-powered products, no coding knowledge required. Instructor: Elena Samuylova, CEO Evidently AI. Sign up for email course: https://www.evidentlyai.com/llm-evaluations-course",
+  "tags": [],
+  "thumbnails": [
+    {
+      "url": "https://i.ytimg.com/vi/rHs0sP7b5fM/hqdefault.jpg?sqp=-oaymwEwCKgBEF5IWvKriqkDIwgBFQAAiEIYAfABAfgB_gmAAtAFigIMCAAQARhyIFIoQzAP&rs=AOn4CLAbuS_LgRw8k-4weKTJa2xOzZghoQ",
+      "height": 94,
+      "width": 168,
+      "id": "0",
+      "resolution": "168x94"
+    },
+    {
+      "url": "https://i.ytimg.com/vi/rHs0sP7b5fM/hqdefault.jpg?sqp=-oaymwEwCMQBEG5IWvKriqkDIwgBFQAAiEIYAfABAfgB_gmAAtAFigIMCAAQARhyIFIoQzAP&rs=AOn4CLAnCRC5sMDHRwPk_eZzSalYH3aCMQ",
+      "height": 110,
+      "width": 196,
+      "id": "1",
+      "resolution": "196x110"
+    },
+    {
+      "url": "https://i.ytimg.com/vi/rHs0sP7b5fM/hqdefault.jpg?sqp=-oaymwExCPYBEIoBSFryq4qpAyMIARUAAIhCGAHwAQH4Af4JgALQBYoCDAgAEAEYciBSKEMwDw==&rs=AOn4CLByPy7mtW7k43RO139udPxX6V67Fg",
+      "height": 138,
+      "width": 246,
+      "id": "2",
+      "resolution": "246x138"
+    },
+    {
+      "url": "https://i.ytimg.com/vi/rHs0sP7b5fM/hqdefault.jpg?sqp=-oaymwExCNACELwBSFryq4qpAyMIARUAAIhCGAHwAQH4Af4JgALQBYoCDAgAEAEYciBSKEMwDw==&rs=AOn4CLAWqnL3XhzwArUR7Ory_Y1xZ6MSUw",
+      "height": 188,
+      "width": 336,
+      "id": "3",
+      "resolution": "336x188"
+    }
+  ],
+  "modified_date": "20250321",
+  "view_count": 19427,
+  "playlist_count": 13,
+  "channel": "Evidently AI",
+  "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+  "uploader_id": "@EvidentlyAI",
+  "uploader": "Evidently AI",
+  "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+  "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+  "_type": "playlist",
+  "entries": [
+    {
+      "title": "Welcome to the LLM evaluation course",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/rHs0sP7b5fM/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgUihDMA8=&rs=AOn4CLC0tTAPs6Eb8m7q5QXgxE3IkUdNvw",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/rHs0sP7b5fM/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgUihDMA8=&rs=AOn4CLCru3CzBRoJ3IkzOPMIU6svl226xg",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/rHs0sP7b5fM/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIFIoQzAP&rs=AOn4CLBtsEXVwhrfIM4UUGNgpuX8LVTNJw",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/rHs0sP7b5fM/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIFIoQzAP&rs=AOn4CLCQ9H1WUuxvz3jMaovra980dba_Gw",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 92,
+      "view_count": 5000,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "rHs0sP7b5fM",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=rHs0sP7b5fM"
+    },
+    {
+      "title": "What is an LLM-powered product?",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/B7fl6He1lxM/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGGUgZShlMA8=&rs=AOn4CLCLsv9jy2pUuPVWoems4_OgtWSQEQ",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/B7fl6He1lxM/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGGUgZShlMA8=&rs=AOn4CLDu1T6nT98xO8icdJ0JNXvaVwNrjw",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/B7fl6He1lxM/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIGUoZTAP&rs=AOn4CLC0wiTi7bfOFuMHwcFMc2EBFvDCkg",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/B7fl6He1lxM/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIGUoZTAP&rs=AOn4CLDIqL0wdsEFaxJk0xX0JWkqH-zIdg",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 188,
+      "view_count": 2700,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "B7fl6He1lxM",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=B7fl6He1lxM"
+    },
+    {
+      "title": "LLM evaluation benchmarks",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/32zkohJICgc/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgTShAMA8=&rs=AOn4CLBvOHCfP5TzAH1L2_2KMV6gFX-IGw",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/32zkohJICgc/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgTShAMA8=&rs=AOn4CLC8HqEeSvz7ZQYjBSHxaGxaSOByog",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/32zkohJICgc/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIE0oQDAP&rs=AOn4CLCOtgmvx1DJKaLD9wCjnftbn815lw",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/32zkohJICgc/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIE0oQDAP&rs=AOn4CLCncf_bkm7n01HhPxkp5i8rZ62y_g",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 187,
+      "view_count": 2700,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "32zkohJICgc",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=32zkohJICgc"
+    },
+    {
+      "title": "How to evaluate an LLM application",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/RIGU1hy3UR8/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgUShFMA8=&rs=AOn4CLC8ZhM55QQLKTYjZDytQTnBl4Xf2w",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/RIGU1hy3UR8/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgUShFMA8=&rs=AOn4CLAjAZ-xTJovTw56whpbI2bhs_3_Bw",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/RIGU1hy3UR8/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIFEoRTAP&rs=AOn4CLBq2_dV7hnsvkQNTUcJXPuxGoiSjg",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/RIGU1hy3UR8/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIFEoRTAP&rs=AOn4CLB9S7IiuT-WEWEtsZbBfvAHIBkdfg",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 360,
+      "view_count": 3500,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "RIGU1hy3UR8",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=RIGU1hy3UR8"
+    },
+    {
+      "title": "LLM evaluation datasets: test cases and synthetic data",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/Do6KAkutKbc/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgTSg_MA8=&rs=AOn4CLDPkU158Op6q_ZoX0uqUi93xLlDKw",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/Do6KAkutKbc/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgTSg_MA8=&rs=AOn4CLBBdrz67hB8WUU1bD9AG5_-7MFazw",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/Do6KAkutKbc/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIE0oPzAP&rs=AOn4CLA62_oH4mwWue6roX9Wd0KMx2EJ0g",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/Do6KAkutKbc/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIE0oPzAP&rs=AOn4CLCLaqxbQi-D63z8jTZDqavFeGdeSw",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 366,
+      "view_count": 3000,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "Do6KAkutKbc",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=Do6KAkutKbc"
+    },
+    {
+      "title": "LLM evaluation methods and metrics",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/6eOcgYP5D4Q/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGGUgWihlMA8=&rs=AOn4CLBq7OD0kX5U4iGKBWVU9kcpDSD_ZA",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/6eOcgYP5D4Q/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGGUgWihlMA8=&rs=AOn4CLDsinrHv2frTMTCnBwZ-2wRv_yQzA",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/6eOcgYP5D4Q/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIFooZTAP&rs=AOn4CLA6FYVXWjoepb-PTysUR47uu8xMJg",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/6eOcgYP5D4Q/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIFooZTAP&rs=AOn4CLBQfAO5A3_jYE7lqjLomyTV89V3Vw",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 310,
+      "view_count": 8600,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "6eOcgYP5D4Q",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=6eOcgYP5D4Q"
+    },
+    {
+      "title": "LLM-as-a-judge: evaluating LLMs with LLMs",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/Qj3u_kzfJVo/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgTSg_MA8=&rs=AOn4CLADAaTfOKzcu0DFdVUNJ6Vuujk-UA",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/Qj3u_kzfJVo/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgTSg_MA8=&rs=AOn4CLAw81SZ4lD-J1dz3iof7RX8IYxpTw",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/Qj3u_kzfJVo/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIE0oPzAP&rs=AOn4CLAosZTdXAHhlsd4gPQ4VsN23nmoLg",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/Qj3u_kzfJVo/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIE0oPzAP&rs=AOn4CLDRgYHWuuGrpVw864JoeVVvTBdPaQ",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 341,
+      "view_count": 9800,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "Qj3u_kzfJVo",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=Qj3u_kzfJVo"
+    },
+    {
+      "title": "How to run LLM evals with no code | PRACTICE",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/gKp9K7Etv4A/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGH8gHCgeMA8=&rs=AOn4CLCYVq8dY54JdzV3VCa4KKRusYUjxg",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/gKp9K7Etv4A/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGH8gHCgeMA8=&rs=AOn4CLCNltg74W15vDaPTB_CPLT1zN42ng",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/gKp9K7Etv4A/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARh_IBwoHjAP&rs=AOn4CLAu2rCZv3V20aOFf5EyEdad1iXXrA",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/gKp9K7Etv4A/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARh_IBwoHjAP&rs=AOn4CLDOnStvvsjYff7qVNiHzMEJyNPjTw",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 747,
+      "view_count": 2900,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "gKp9K7Etv4A",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=gKp9K7Etv4A"
+    },
+    {
+      "title": "LLM safety and red-teaming",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/XZZ6glt0AMA/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGGUgZShlMA8=&rs=AOn4CLD8Qai5HtqnFdea4lmhSxt2LRxvjg",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/XZZ6glt0AMA/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGGUgZShlMA8=&rs=AOn4CLBIjFDxr3ZMfmREBU6oCb2hpu2bIA",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/XZZ6glt0AMA/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIGUoZTAP&rs=AOn4CLDkm402a90WjXjwxnG_BcTZQik4Vw",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/XZZ6glt0AMA/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIGUoZTAP&rs=AOn4CLCPTdbazW314AylPGD2GcJdemwk3A",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 311,
+      "view_count": 1400,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "XZZ6glt0AMA",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=XZZ6glt0AMA"
+    },
+    {
+      "title": "LLM observability in production: tracing and online evals",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/r-CYvjJ-W3k/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgTCg9MA8=&rs=AOn4CLAHbDl8YZUF5nNgIcfl-919QZsyFQ",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/r-CYvjJ-W3k/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgTCg9MA8=&rs=AOn4CLAHXIzDdLaeb7DzeFj7baimF4iS2g",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/r-CYvjJ-W3k/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIEwoPTAP&rs=AOn4CLCdpHfv3VDa4M6wOuPaRa1A6kXghA",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/r-CYvjJ-W3k/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIEwoPTAP&rs=AOn4CLA8Gt9tkEpaNUP14yXBTG_JjmjMEQ",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 309,
+      "view_count": 1300,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "r-CYvjJ-W3k",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=r-CYvjJ-W3k"
+    },
+    {
+      "title": "AI agent and RAG evaluation",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/6EtqsMcEhaw/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgUChBMA8=&rs=AOn4CLBuh7s_9W3xQwgp1LLSUwo-sY4rsg",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/6EtqsMcEhaw/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgUChBMA8=&rs=AOn4CLDUns42Vp6ohdq4IPXyrhg32GcbWQ",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/6EtqsMcEhaw/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIFAoQTAP&rs=AOn4CLB1Ji_1ct9ttvfe-lGjhGNvcLm2IQ",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/6EtqsMcEhaw/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIFAoQTAP&rs=AOn4CLBztThX_wCAKORVos4YHX4kEZuKmA",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 365,
+      "view_count": 1400,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "6EtqsMcEhaw",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=6EtqsMcEhaw"
+    },
+    {
+      "title": "A business case for LLM evaluations",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/ZaOo2dce20A/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgUShCMA8=&rs=AOn4CLBNYmQY-5FZXYhx6ifrNvufx6f1YA",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/ZaOo2dce20A/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGHIgUShCMA8=&rs=AOn4CLDfGSxnDJ92Azq2L8AVi2m4AxklUw",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/ZaOo2dce20A/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIFEoQjAP&rs=AOn4CLAJ-ezMvwiZkdMPRwYz3DwZZUgNzA",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/ZaOo2dce20A/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIFEoQjAP&rs=AOn4CLCnGR2jnqf8oYUbACkUvJ2revmAXA",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 246,
+      "view_count": 904,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "ZaOo2dce20A",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=ZaOo2dce20A"
+    },
+    {
+      "title": "How to continuously improve LLM products?",
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/x9mfMkBWwCY/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGGUgWyhlMA8=&rs=AOn4CLAlYO8xo-2rM5tClLHq4OqGGQh-oA",
+          "height": 94,
+          "width": 168
+        },
+        {
+          "url": "https://i.ytimg.com/vi/x9mfMkBWwCY/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGGUgWyhlMA8=&rs=AOn4CLDhFV8uRdc5IupNllcB7qlBJhYJ7Q",
+          "height": 110,
+          "width": 196
+        },
+        {
+          "url": "https://i.ytimg.com/vi/x9mfMkBWwCY/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIFsoZTAP&rs=AOn4CLAdo1RJ3JaVdZj0Jpa4pWbXKRbsOA",
+          "height": 138,
+          "width": 246
+        },
+        {
+          "url": "https://i.ytimg.com/vi/x9mfMkBWwCY/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIFsoZTAP&rs=AOn4CLBqotIMJcn37xtu2mVQAuQNmGzcgA",
+          "height": 188,
+          "width": 336
+        }
+      ],
+      "duration": 154,
+      "view_count": 1100,
+      "timestamp": null,
+      "live_status": null,
+      "availability": null,
+      "channel_url": "https://www.youtube.com/channel/UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader_url": "https://www.youtube.com/@EvidentlyAI",
+      "creators": null,
+      "channel": "Evidently AI",
+      "channel_id": "UCBonGueTVi_RfxNPXPjUTGg",
+      "uploader": "Evidently AI",
+      "uploader_id": "@EvidentlyAI",
+      "ie_key": "Youtube",
+      "id": "x9mfMkBWwCY",
+      "_type": "url",
+      "url": "https://www.youtube.com/watch?v=x9mfMkBWwCY"
+    }
+  ],
+  "extractor_key": "YoutubeTab",
+  "extractor": "youtube:tab",
+  "webpage_url": "http://www.youtube.com/playlist?list=PL9omX6impEuMgDFCK_NleIB0sMzKs2boI",
+  "original_url": "http://youtube.com/playlist?list=PL9omX6impEuMgDFCK_NleIB0sMzKs2boI",
+  "webpage_url_basename": "playlist",
+  "webpage_url_domain": "youtube.com",
+  "release_year": null,
+  "_version": {
+    "version": "2026.07.04",
+    "current_git_head": null,
+    "release_git_head": "997fa140840a08df3938b40da470c78049fef1f6",
+    "repository": "yt-dlp/yt-dlp"
+  }
+}

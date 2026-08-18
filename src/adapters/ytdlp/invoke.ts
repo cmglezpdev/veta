@@ -6,6 +6,7 @@ export type InvokeOptions = {
   readonly cwd?: string;
   readonly signal?: AbortSignal;
   readonly timeout?: number;
+  readonly maxBuffer?: number;
 };
 
 export type InvokeResult = {
@@ -37,6 +38,7 @@ export function invokeYtDlp(
         cwd: options.cwd,
         signal: options.signal,
         timeout: options.timeout,
+        maxBuffer: options.maxBuffer,
         encoding: "utf8",
       },
       (error, stdout, stderr) => {
@@ -62,7 +64,10 @@ export function invokeYtDlp(
           return;
         }
 
-        const exitCode = typeof failure.code === "number" && failure.code !== 0 ? failure.code : 1;
+        const exitCode =
+          typeof failure.code === "number" && failure.code !== 0
+            ? failure.code
+            : 1;
         reject(diagnose(exitCode, stderr));
       },
     );
