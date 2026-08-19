@@ -19,6 +19,10 @@ export const EXIT_CODES = {
   PATH_ESCAPE: 8,
   WORK_DIR_EXISTS: 8,
   INPUT_UNRECOGNIZED: 2,
+  // Playlist wiring lands in PR5; these two codes exist starting PR4 (task
+  // 4.2), so the exhaustive Record needs them now to keep tsc green.
+  PLAYLIST_EMPTY: 6,
+  PLAYLIST_PARTIAL_FAILURE: 9,
 } as const satisfies Record<VetaErrorCode, number>;
 
 /** Map a thrown value to the exit status the CLI should use. */

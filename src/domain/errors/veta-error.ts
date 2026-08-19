@@ -34,7 +34,11 @@ export type VetaErrorCode =
   /** A package directory already exists under the name a run wants to take. */
   | "WORK_DIR_EXISTS"
   /** The argument given is not a YouTube URL or video id. */
-  | "INPUT_UNRECOGNIZED";
+  | "INPUT_UNRECOGNIZED"
+  /** A playlist listing resolved zero members. */
+  | "PLAYLIST_EMPTY"
+  /** A playlist run finished with at least one member failed or unavailable. */
+  | "PLAYLIST_PARTIAL_FAILURE";
 
 /**
  * An error whose message is meant to be read by a person, not a stack trace.

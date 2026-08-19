@@ -1,0 +1,11 @@
+{
+  "id": "member1id01",
+  "title": "Playlist Member One",
+  "duration": 120,
+  "uploader": "Test Channel",
+  "webpage_url": "https://www.youtube.com/watch?v=member1id01",
+  "language": "en",
+  "automatic_captions": {
+    "en": [{ "ext": "json3", "name": "English" }]
+  }
+}

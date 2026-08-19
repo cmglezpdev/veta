@@ -16,6 +16,8 @@ const ALL_CODES: readonly VetaErrorCode[] = [
   "PATH_ESCAPE",
   "WORK_DIR_EXISTS",
   "INPUT_UNRECOGNIZED",
+  "PLAYLIST_EMPTY",
+  "PLAYLIST_PARTIAL_FAILURE",
 ];
 
 describe("exitCodeFor", () => {
