@@ -280,6 +280,22 @@ describe("runExtraction prompt generation", () => {
     expect((await readState()).steps.prompt_generated).toBe("complete");
   });
 
+  it("lets packageName override the notes folder baked into the prompt", async () => {
+    const result = await runExtraction(VIDEO_ID, new YtDlpExtractionSource(), newStore(), {
+      now: tickingClock(),
+      packageName: (dirName) => `playlist-slug/01-${dirName}`,
+    });
+
+    // The package on disk and the transcript path are unaffected — only the
+    // notes folder name baked into prompt.md changes.
+    expect(result.transcriptPath).toBe(path.join(dataDir, PACKAGE_DIR, "transcript.md"));
+    expect(result.promptPath).toBe(path.join(dataDir, PACKAGE_DIR, "prompt.md"));
+
+    const prompt = await readFile(result.promptPath!, "utf8");
+    expect(prompt).toContain(`Create a \`playlist-slug/01-${PACKAGE_DIR}/\` folder`);
+    expect(prompt).not.toContain(`Create a \`${PACKAGE_DIR}/\` folder`);
+  });
+
   it("says nothing about a cover when the thumbnail was skipped", async () => {
     process.env["VETA_FAKE_THUMBNAIL_FAIL"] = "1";
 
