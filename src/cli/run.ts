@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { FsStore } from "../adapters/store/fs-store.ts";
 import { YtDlpExtractionSource } from "../adapters/ytdlp/ytdlp-extraction-source.ts";
+import { YtDlpPlaylistSource } from "../adapters/ytdlp/ytdlp-playlist-source.ts";
 import { VetaError, isVetaError } from "../domain/errors/veta-error.ts";
 import type { VetaErrorCode } from "../domain/errors/veta-error.ts";
 import { buildCliProgram, CommandFinished } from "./cli-structure.ts";
@@ -10,6 +11,7 @@ import { copyToClipboard } from "./clipboard.ts";
 import { confirmEnter } from "./confirm.ts";
 import { exitCodeFor } from "./exit-codes.ts";
 import { extract } from "./extract.ts";
+import { extractPlaylist } from "./extract-playlist.ts";
 import { list } from "./list.ts";
 import { purge } from "./purge.ts";
 import { createProgressRenderer } from "./render/progress-renderer.ts";
@@ -51,8 +53,15 @@ function vetaErrorCodeFromString(code: string): VetaErrorCode | undefined {
   return codes.find((candidate) => candidate === code);
 }
 
+/**
+ * Route a URL to the playlist path or the single-video path, per the data
+ * flow diagram: `identifyPlaylist()` decides, with zero network calls. A
+ * `watch?v=…&list=…` URL never matches (pathname stays `/watch`), so it
+ * falls straight through to the unmodified single-video path below.
+ */
 async function runExtract(url: string, preferredLang?: string, force?: boolean): Promise<void> {
   const source = new YtDlpExtractionSource();
+  const playlistSource = new YtDlpPlaylistSource();
   const store = new FsStore({ dataDir: dataDirFromEnv() });
   // Progress rides on stderr like everything conversational; a TTY gets the
   // spinner, a pipe gets plain lines. The renderer must be shut down on every
@@ -63,23 +72,31 @@ async function runExtract(url: string, preferredLang?: string, force?: boolean):
   const renderer = createProgressRenderer(process.stderr, {
     useColor: process.stderr.isTTY === true && process.env["NO_COLOR"] === undefined,
   });
-  let transcriptPath: string;
-  let promptPath: string | null;
+
   try {
-    ({ transcriptPath, promptPath } = await extract(url, source, store, {
+    const identity = await playlistSource.identifyPlaylist(url);
+    if (identity !== null) {
+      await extractPlaylist(url, playlistSource, source, store, process.stdout, process.stderr, {
+        force: force ?? false,
+        onProgress: renderer.onEvent,
+      });
+      return;
+    }
+
+    const { transcriptPath, promptPath } = await extract(url, source, store, {
       preferredLang: preferredLang ?? null,
       force: force ?? false,
       onProgress: renderer.onEvent,
-    }));
+    });
+    // The one line scripts can rely on. Everything conversational goes to stderr.
+    process.stdout.write(`${transcriptPath}\n`);
+    await offerPromptCopy(promptPath);
   } catch (error) {
     renderer.fail();
     throw error;
   } finally {
     renderer.finish();
   }
-  // The one line scripts can rely on. Everything conversational goes to stderr.
-  process.stdout.write(`${transcriptPath}\n`);
-  await offerPromptCopy(promptPath);
 }
 
 /**

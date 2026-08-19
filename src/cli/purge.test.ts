@@ -5,6 +5,7 @@ import path from "node:path";
 import { PassThrough } from "node:stream";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { FsStore } from "../adapters/store/fs-store.ts";
+import { createPlaylistRecord } from "../domain/run/playlist-record.ts";
 import { createRunRecord } from "../domain/run/run-record.ts";
 import { purge } from "./purge.ts";
 
@@ -107,5 +108,25 @@ describe("purge", () => {
 
     expect(result).toEqual({ confirmed: true, removed: 1 });
     expect(existsSync(dir)).toBe(false);
+  });
+
+  it("removes a playlist directory and its member directories end to end", async () => {
+    const memberDir = await plantPackage("member-one", "m1");
+    const playlistDir = path.join(dataDir, "pl-my-playlist-pl1");
+    await mkdir(playlistDir, { recursive: true });
+    const record = createPlaylistRecord({
+      playlistId: "PL1",
+      dirName: "pl-my-playlist-pl1",
+      title: "My Playlist",
+      totalCount: 1,
+      members: [{ position: 1, externalId: "m1", dirName: "member-one", status: "extracted", errorCode: null }],
+    });
+    await writeFile(path.join(playlistDir, "state.json"), JSON.stringify(record), "utf8");
+
+    const { result } = await runPurge("y");
+
+    expect(result).toEqual({ confirmed: true, removed: 2 });
+    expect(existsSync(memberDir)).toBe(false);
+    expect(existsSync(playlistDir)).toBe(false);
   });
 });

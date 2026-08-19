@@ -95,6 +95,60 @@ describe("createProgressRenderer (non-TTY)", () => {
   });
 });
 
+describe("createProgressRenderer (playlist events)", () => {
+  it("holds a [k/n] <title> prefix on step events between member-start and member-done", () => {
+    const stream = captureStream();
+    const renderer = createProgressRenderer(stream, { isTTY: false });
+
+    renderer.onEvent(event({ kind: "playlist:identified", title: "My Playlist", totalCount: 2, selectedCount: 2 }));
+    renderer.onEvent(
+      event({ kind: "playlist:member-start", index: 1, total: 2, position: 1, externalId: "abc", title: "First Video" }),
+    );
+    renderer.onEvent(event({ kind: "phase:start", phase: "identify" }));
+    renderer.onEvent(event({ kind: "phase:done", phase: "identify", outcome: "fresh" }));
+    renderer.onEvent(
+      event({ kind: "playlist:member-done", index: 1, total: 2, outcome: "extracted", dirName: "first-video", errorMessage: null }),
+    );
+    renderer.onEvent(event({ kind: "phase:start", phase: "identify" }));
+    renderer.onEvent(event({ kind: "playlist:summary", extracted: 1, failed: 0, unavailable: 0 }));
+
+    expect(stream.writes.join("")).toBe(
+      [
+        "Playlist: My Playlist — 2/2 member(s)\n",
+        "[1/2] First Video\n",
+        "-> [1/2] First Video: Resolving video\n",
+        "ok [1/2] First Video: Resolving video\n",
+        "[1/2] First Video: done\n",
+        "-> Resolving video\n",
+        "Playlist finished: 1 extracted, 0 failed, 0 unavailable\n",
+      ].join(""),
+    );
+  });
+
+  it("reports a failed or unavailable member's error message on its member-done line", () => {
+    const stream = captureStream();
+    const renderer = createProgressRenderer(stream, { isTTY: false });
+
+    renderer.onEvent(
+      event({ kind: "playlist:member-start", index: 2, total: 2, position: 2, externalId: null, title: null }),
+    );
+    renderer.onEvent(
+      event({
+        kind: "playlist:member-done",
+        index: 2,
+        total: 2,
+        outcome: "unavailable",
+        dirName: null,
+        errorMessage: "Member is unavailable.",
+      }),
+    );
+
+    expect(stream.writes.join("")).toBe(
+      ["[2/2] position 2\n", "[2/2] position 2: unavailable: Member is unavailable.\n"].join(""),
+    );
+  });
+});
+
 describe("createProgressRenderer (TTY)", () => {
   it("animates the spinner in place while a phase is live", () => {
     const stream = captureStream();

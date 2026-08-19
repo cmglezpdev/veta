@@ -66,4 +66,12 @@ describe("exitCodeFor", () => {
     expect(exitCodeFor(new Error("boom"))).toBe(1);
     expect(exitCodeFor("string")).toBe(1);
   });
+
+  it("maps PLAYLIST_EMPTY to 6", () => {
+    expect(exitCodeFor(new VetaError("PLAYLIST_EMPTY", "empty"))).toBe(6);
+  });
+
+  it("maps PLAYLIST_PARTIAL_FAILURE to 9", () => {
+    expect(exitCodeFor(new VetaError("PLAYLIST_PARTIAL_FAILURE", "partial"))).toBe(9);
+  });
 });
