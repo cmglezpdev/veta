@@ -3,8 +3,10 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { isVetaError } from "../../domain/errors/veta-error.ts";
+import { createPlaylistRecord, type PlaylistRecord } from "../../domain/run/playlist-record.ts";
 import { createRunRecord } from "../../domain/run/run-record.ts";
 import type { RunRecord } from "../../domain/run/run-record.ts";
+import { isPlaylistRecord } from "../../domain/run/stored-record.ts";
 import type { WorkDir } from "../../ports/extraction-source.ts";
 import { FsStore } from "./fs-store.ts";
 
@@ -19,6 +21,21 @@ async function tempStore(): Promise<{ store: FsStore; dataDir: string }> {
 function record(overrides: Partial<RunRecord> & { externalId: string; dirName: string }): RunRecord {
   return createRunRecord({
     selectedTrack: null,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    ...overrides,
+  });
+}
+
+function playlistRecord(
+  overrides: Partial<PlaylistRecord> & { playlistId: string; dirName: string },
+): PlaylistRecord {
+  return createPlaylistRecord({
+    title: "Clean Architecture Course",
+    totalCount: 1,
+    members: [
+      { position: 1, externalId: "abc12345678", dirName: "intro-to-layers", status: "extracted", errorCode: null },
+    ],
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -602,5 +619,94 @@ describe("FsStore.replaceDir", () => {
     );
 
     expect(code).toBe("PATH_ESCAPE");
+  });
+});
+
+describe("FsStore.savePlaylist / findPlaylist", () => {
+  it("persists the playlist record inside its own package directory", async () => {
+    const { store, dataDir } = await tempStore();
+
+    await store.savePlaylist(
+      playlistRecord({ playlistId: "PLb0iCwbNjkuoY7Ix", dirName: "pl-course-plb0icwbnjkuoy7ix" }),
+    );
+
+    const state = await readFile(path.join(dataDir, "pl-course-plb0icwbnjkuoy7ix", "state.json"), "utf8");
+    expect(JSON.parse(state)).toMatchObject({ schemaVersion: 1, kind: "playlist", playlistId: "PLb0iCwbNjkuoY7Ix" });
+  });
+
+  it("finds a playlist record it just saved", async () => {
+    const { store } = await tempStore();
+    const saved = playlistRecord({ playlistId: "PLb0iCwbNjkuoY7Ix", dirName: "pl-course-plb0icwbnjkuoy7ix" });
+
+    await store.savePlaylist(saved);
+
+    expect(await store.findPlaylist("PLb0iCwbNjkuoY7Ix")).toEqual(saved);
+  });
+
+  it("answers null for a playlist that was never run", async () => {
+    const { store } = await tempStore();
+
+    expect(await store.findPlaylist("never-seen")).toBeNull();
+  });
+
+  it("does not add an entry to index.json (D3 — index stays video-only)", async () => {
+    const { store, dataDir } = await tempStore();
+
+    await store.savePlaylist(
+      playlistRecord({ playlistId: "PLb0iCwbNjkuoY7Ix", dirName: "pl-course-plb0icwbnjkuoy7ix" }),
+    );
+
+    const raw = await readFile(path.join(dataDir, "index.json"), "utf8").catch(() => null);
+    if (raw === null) return; // no index.json at all is also "stays video-only"
+    const index = JSON.parse(raw);
+    expect(index.runs).toEqual([]);
+  });
+
+  it("does not resolve a playlist's own package as a video run", async () => {
+    const { store } = await tempStore();
+    await store.savePlaylist(
+      playlistRecord({ playlistId: "PLb0iCwbNjkuoY7Ix", dirName: "pl-course-plb0icwbnjkuoy7ix" }),
+    );
+
+    expect(await store.listRunRecords()).toEqual([]);
+  });
+});
+
+describe("FsStore.listStoredRecords", () => {
+  it("returns both video and playlist records together", async () => {
+    const { store } = await tempStore();
+    const video = record({ externalId: "abc", dirName: "my-video" });
+    const playlist = playlistRecord({ playlistId: "PLb0iCwbNjkuoY7Ix", dirName: "pl-course-plb0icwbnjkuoy7ix" });
+    await store.saveRun(video);
+    await store.savePlaylist(playlist);
+
+    const stored = await store.listStoredRecords();
+
+    expect(stored).toHaveLength(2);
+    expect(stored.filter(isPlaylistRecord)).toEqual([playlist]);
+    expect(stored.filter((s) => !isPlaylistRecord(s))).toEqual([video]);
+  });
+
+  it("answers an empty list when nothing has been run", async () => {
+    const { store } = await tempStore();
+
+    expect(await store.listStoredRecords()).toEqual([]);
+  });
+});
+
+describe("FsStore.purge with playlists", () => {
+  it("removes a playlist directory and its member directories", async () => {
+    const { store, dataDir } = await tempStore();
+    await store.savePlaylist(
+      playlistRecord({ playlistId: "PLb0iCwbNjkuoY7Ix", dirName: "pl-course-plb0icwbnjkuoy7ix" }),
+    );
+    await store.saveRun(record({ externalId: "abc12345678", dirName: "intro-to-layers" }));
+
+    const result = await store.purge();
+
+    expect(result).toEqual({ removed: 2 });
+    const left = await readdir(dataDir);
+    expect(left).not.toContain("pl-course-plb0icwbnjkuoy7ix");
+    expect(left).not.toContain("intro-to-layers");
   });
 });
