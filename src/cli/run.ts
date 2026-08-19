@@ -76,10 +76,11 @@ async function runExtract(url: string, preferredLang?: string, force?: boolean):
   try {
     const identity = await playlistSource.identifyPlaylist(url);
     if (identity !== null) {
-      await extractPlaylist(url, playlistSource, source, store, process.stdout, process.stderr, {
+      const result = await extractPlaylist(url, playlistSource, source, store, process.stdout, process.stderr, {
         force: force ?? false,
         onProgress: renderer.onEvent,
       });
+      await offerPromptCopy(result.promptPath);
       return;
     }
 
