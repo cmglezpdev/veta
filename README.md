@@ -135,6 +135,18 @@ notes what is missing, and stderr prefixes every per-member line with
 `[k/n] <title>`. If any member did not complete, veta still prints the prompt
 path first, then exits non-zero.
 
+## Update notifications
+
+When a newer release is on npm, veta prints a small box on stderr after the
+command finishes — current version, new version, a changelog link, and the
+update command for the package manager that installed it. The registry is
+asked at most once every 24 hours; the answer is cached in
+`~/.veta/update-check.json` (under `VETA_DATA_DIR` if set). The check only
+runs in an interactive terminal and never affects the exit code.
+
+Opt out with `NO_UPDATE_NOTIFIER=1` (or `VETA_NO_UPDATE_CHECK=1`); it is also
+skipped automatically when `CI` is set.
+
 ## Requirements
 
 | Need | Why |

@@ -156,6 +156,14 @@ describe("list command", () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("my-video");
   });
+
+  it("does not check for updates when stderr is not a TTY", () => {
+    const result = runCli(["list"], { VETA_DATA_DIR: dataDir });
+
+    expect(result.status).toBe(0);
+    expect(result.stderr).not.toContain("Update available");
+    expect(existsSync(path.join(dataDir, "update-check.json"))).toBe(false);
+  });
 });
 
 describe("yargs completion short-circuit (D17)", () => {

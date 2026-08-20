@@ -15,6 +15,19 @@ import { extractPlaylist } from "./extract-playlist.ts";
 import { list } from "./list.ts";
 import { purge } from "./purge.ts";
 import { createProgressRenderer } from "./render/progress-renderer.ts";
+import { readCurrentVersion } from "./update/current-version.ts";
+import {
+  currentBinPath,
+  detectInstaller,
+  updateCommandFor,
+} from "./update/package-manager.ts";
+import { changelogUrlFor, renderUpdateNotice } from "./update/render-notice.ts";
+import {
+  fetchLatestFromNpm,
+  fileUpdateCache,
+  shouldCheckForUpdates,
+  startUpdateCheck,
+} from "./update/update-check.ts";
 
 /**
  * Where packages live: `~/.veta` unless `VETA_DATA_DIR` overrides it.
@@ -70,7 +83,8 @@ async function runExtract(url: string, preferredLang?: string, force?: boolean):
   // NO_COLOR convention (https://no-color.org): presence alone, any value,
   // turns color off.
   const renderer = createProgressRenderer(process.stderr, {
-    useColor: process.stderr.isTTY === true && process.env["NO_COLOR"] === undefined,
+    useColor:
+      process.stderr.isTTY === true && process.env["NO_COLOR"] === undefined,
   });
 
   try {
@@ -132,7 +146,9 @@ async function offerPromptCopy(promptPath: string | null): Promise<void> {
     process.stderr.write("Copied to clipboard.\n");
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`Warning: ${reason} The prompt is still at ${promptPath}.\n`);
+    process.stderr.write(
+      `Warning: ${reason} The prompt is still at ${promptPath}.\n`,
+    );
   }
 }
 
@@ -193,7 +209,10 @@ function buildProgram(argv: readonly string[]) {
     if (error !== undefined) {
       throw error;
     }
-    throw new VetaError("INPUT_UNRECOGNIZED", msg || "Unrecognized command or option.");
+    throw new VetaError(
+      "INPUT_UNRECOGNIZED",
+      msg || "Unrecognized command or option.",
+    );
   });
 }
 
@@ -219,20 +238,86 @@ export async function run(argv: readonly string[]): Promise<number> {
   }
 }
 
+type UpdateCheck = { result(): Promise<string | null> };
+
+/**
+ * Start the "newer version?" lookup so it overlaps the command. Anything that
+ * goes wrong here is swallowed: the notice is a courtesy, never a failure.
+ */
+function beginUpdateCheck(): UpdateCheck | null {
+  if (
+    !shouldCheckForUpdates(
+      process.env,
+      process.stderr.isTTY === true,
+      process.argv,
+    )
+  ) {
+    return null;
+  }
+  // Reading package.json is one file read; the registry request leaves right
+  // after it and runs alongside the command itself.
+  const pending = readCurrentVersion()
+    .then((currentVersion) =>
+      startUpdateCheck({
+        currentVersion,
+        fetchLatest: fetchLatestFromNpm,
+        cache: fileUpdateCache(
+          path.join(dataDirFromEnv(), "update-check.json"),
+        ),
+        now: Date.now,
+      }).result(),
+    )
+    .catch(() => null);
+
+  return { result: () => pending };
+}
+
+/** Print the update box on stderr if a newer version was found. Never throws. */
+async function printUpdateNotice(check: UpdateCheck | null): Promise<void> {
+  if (check === null) {
+    return;
+  }
+  try {
+    const latest = await check.result();
+    if (latest === null) {
+      return;
+    }
+    const current = await readCurrentVersion();
+    const installer = detectInstaller(await currentBinPath(), process.env);
+    process.stderr.write(
+      renderUpdateNotice({
+        current,
+        latest,
+        changelogUrl: changelogUrlFor(latest),
+        updateCommand: updateCommandFor(installer),
+        useColor:
+          process.stderr.isTTY === true &&
+          process.env["NO_COLOR"] === undefined,
+      }),
+    );
+  } catch {
+    // A failed notice must never change the outcome of the command.
+  }
+}
+
 /** Composition root for normal CLI execution (not completion short-circuit). */
 export function main(): void {
+  const check = beginUpdateCheck();
+
   run(process.argv).then(
-    (code) => {
+    async (code) => {
+      await printUpdateNotice(check);
       process.exit(code);
     },
-    (error: unknown) => {
+    async (error: unknown) => {
       if (isVetaError(error)) {
         process.stderr.write(`${error.message}\n`);
-        process.exit(exitCodeFor(error));
-        return;
+      } else {
+        process.stderr.write(
+          `${error instanceof Error ? error.message : String(error)}\n`,
+        );
       }
-
-      process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+      await printUpdateNotice(check);
       process.exit(exitCodeFor(error));
     },
   );
