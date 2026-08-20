@@ -176,6 +176,29 @@ describe("extractPlaylist", () => {
     expect(read(stderr)).toContain("Playlist Member Four");
   });
 
+  it("passes the member selection through: [k/n] counts the selection, positions stay original", async () => {
+    const { stdout, stderr, read } = streams();
+    const renderer = createProgressRenderer(stderr, { isTTY: false });
+
+    await extractPlaylist(
+      PLAYLIST_URL,
+      new YtDlpPlaylistSource(),
+      new YtDlpExtractionSource(),
+      newStore(),
+      stdout,
+      stderr,
+      {
+        onProgress: renderer.onEvent,
+        selection: { only: [{ start: 2, end: 2 }], skipOnly: null, skip: 0, limit: null },
+      },
+    );
+
+    const text = read(stderr);
+    expect(text).toContain("1/2 member(s)");
+    expect(text).toContain("[1/1] Playlist Member Four");
+    expect(text).not.toContain("Playlist Member One");
+  });
+
   it("shows a [k/n] <title> prefix on stderr during each member's turn, via a real renderer", async () => {
     const { stdout, stderr, read } = streams();
     const renderer = createProgressRenderer(stderr, { isTTY: false });

@@ -1,4 +1,5 @@
 import { VetaError } from "../domain/errors/veta-error.ts";
+import type { MemberSelection } from "../domain/playlist/member-selection.ts";
 import type { ProgressListener } from "../pipeline/progress.ts";
 import { runPlaylistExtraction, type RunPlaylistResult } from "../pipeline/run-playlist-extraction.ts";
 import type { ExtractionSourcePort } from "../ports/extraction-source.ts";
@@ -10,6 +11,8 @@ export type ExtractPlaylistOptions = {
   readonly force?: boolean;
   /** Observer for step-by-step feedback; the CLI hangs a renderer here. */
   readonly onProgress?: ProgressListener;
+  /** Parsed `--limit`/`--skip`/`--only`/`--skip-only`; null or absent extracts everything. */
+  readonly selection?: MemberSelection | null;
 };
 
 /**
@@ -30,6 +33,7 @@ export async function extractPlaylist(
   const result = await runPlaylistExtraction(input, playlistSource, source, store, {
     force: options.force ?? false,
     onProgress: options.onProgress,
+    selection: options.selection ?? null,
   });
 
   // The one line scripts can rely on, printed before any partial-failure

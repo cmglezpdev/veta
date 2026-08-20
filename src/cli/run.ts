@@ -6,7 +6,8 @@ import { YtDlpExtractionSource } from "../adapters/ytdlp/ytdlp-extraction-source
 import { YtDlpPlaylistSource } from "../adapters/ytdlp/ytdlp-playlist-source.ts";
 import { VetaError, isVetaError } from "../domain/errors/veta-error.ts";
 import type { VetaErrorCode } from "../domain/errors/veta-error.ts";
-import { buildCliProgram, CommandFinished } from "./cli-structure.ts";
+import { parseMemberSelection, type RawSelectionFlags } from "../domain/playlist/member-selection.ts";
+import { buildCliProgram, CommandFinished, type ExtractArgs } from "./cli-structure.ts";
 import { copyToClipboard } from "./clipboard.ts";
 import { confirmEnter } from "./confirm.ts";
 import { exitCodeFor } from "./exit-codes.ts";
@@ -72,7 +73,11 @@ function vetaErrorCodeFromString(code: string): VetaErrorCode | undefined {
  * `watch?v=…&list=…` URL never matches (pathname stays `/watch`), so it
  * falls straight through to the unmodified single-video path below.
  */
-async function runExtract(url: string, preferredLang?: string, force?: boolean): Promise<void> {
+async function runExtract({ url, lang: preferredLang, force, ...curation }: ExtractArgs): Promise<void> {
+  // Curation flags are validated before anything is constructed or fetched:
+  // a bad `--only` spec must fail on the spot, never after network work.
+  const selection = parseMemberSelection(curation satisfies RawSelectionFlags);
+
   const source = new YtDlpExtractionSource();
   const playlistSource = new YtDlpPlaylistSource();
   const store = new FsStore({ dataDir: dataDirFromEnv() });
@@ -93,9 +98,17 @@ async function runExtract(url: string, preferredLang?: string, force?: boolean):
       const result = await extractPlaylist(url, playlistSource, source, store, process.stdout, process.stderr, {
         force: force ?? false,
         onProgress: renderer.onEvent,
+        selection,
       });
       await offerPromptCopy(result.promptPath);
       return;
+    }
+
+    if (selection !== null) {
+      throw new VetaError(
+        "INPUT_UNRECOGNIZED",
+        "--limit, --skip, --only, and --skip-only apply only to playlists; this input is a single video.",
+      );
     }
 
     const { transcriptPath, promptPath } = await extract(url, source, store, {
@@ -194,9 +207,7 @@ async function runPurge(): Promise<void> {
 function buildProgram(argv: readonly string[]) {
   return buildCliProgram(
     {
-      extract: async ({ url, lang, force }) => {
-        await runExtract(url, lang, force);
-      },
+      extract: runExtract,
       doctor: runDoctor,
       list: runList,
       purge: runPurge,

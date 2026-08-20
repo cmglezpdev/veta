@@ -15,6 +15,10 @@ export type ExtractArgs = {
   readonly url: string;
   readonly lang?: string;
   readonly force?: boolean;
+  readonly limit?: number;
+  readonly skip?: number;
+  readonly only?: string;
+  readonly skipOnly?: string;
 };
 
 export type CliHandlers = {
@@ -39,6 +43,22 @@ const extractBuilder = (builder: Argv) =>
     .option("force", {
       type: "boolean",
       describe: "Discard prior progress and re-extract from scratch",
+    })
+    .option("limit", {
+      type: "number",
+      describe: "Playlists only: extract at most <n> of the selected members",
+    })
+    .option("skip", {
+      type: "number",
+      describe: "Playlists only: drop the first <n> members before --limit",
+    })
+    .option("only", {
+      type: "string",
+      describe: "Playlists only: keep just these 1-based positions, e.g. 1,3,5-8",
+    })
+    .option("skip-only", {
+      type: "string",
+      describe: "Playlists only: keep every position except these, e.g. 1,3,5-8",
     });
 
 /** Map bare `veta <url>` (and `veta --lang … <url>`) to the extract subcommand. */
@@ -101,6 +121,10 @@ export function buildCliProgram(
           url: String(args.url),
           lang: args.lang as string | undefined,
           force: args.force as boolean | undefined,
+          limit: args.limit as number | undefined,
+          skip: args.skip as number | undefined,
+          only: args.only as string | undefined,
+          skipOnly: args["skip-only"] as string | undefined,
         });
       },
     )
