@@ -1,10 +1,13 @@
 /**
  * Port surface and WorkDir minting policy.
  *
- * Slice 5 keeps exactly two swappable boundaries under `src/ports/`. Production
- * code must obtain `WorkDir` values through `StorePort.openWorkDir` once
- * `FsStore` lands; until Slice 5c migrates the CLI, legacy call sites are
- * tracked explicitly below.
+ * Slice 5 kept exactly two swappable boundaries under `src/ports/`; the
+ * playlist-support design (D1) adds a third, deliberately separate from
+ * `ExtractionSourcePort` rather than folded into it — a union return there
+ * would force `runExtraction()` to narrow on it, the one file that design
+ * promises to leave alone. Production code must obtain `WorkDir` values
+ * through `StorePort.openWorkDir` once `FsStore` lands; until Slice 5c
+ * migrates the CLI, legacy call sites are tracked explicitly below.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
@@ -53,7 +56,7 @@ function importsAsWorkDir(relativePath: string): boolean {
 }
 
 describe("port surface", () => {
-  it("exports exactly two *Port interfaces under src/ports/", () => {
+  it("exports exactly three *Port interfaces under src/ports/", () => {
     const portFiles = readdirSync(PORTS_DIR).filter((name) => name.endsWith(".ts"));
     const portInterfaces: string[] = [];
 
@@ -65,7 +68,11 @@ describe("port surface", () => {
       }
     }
 
-    expect(portInterfaces.sort()).toEqual(["ExtractionSourcePort", "StorePort"]);
+    expect(portInterfaces.sort()).toEqual([
+      "ExtractionSourcePort",
+      "PlaylistSourcePort",
+      "StorePort",
+    ]);
   });
 });
 

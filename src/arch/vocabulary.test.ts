@@ -32,6 +32,7 @@ const WIRE_TERMS = [
   "segs",
   "wireMagic",
   "tlang",
+  "ie_key",
 ] as const;
 
 function typescriptFiles(): string[] {

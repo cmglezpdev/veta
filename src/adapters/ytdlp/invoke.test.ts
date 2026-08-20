@@ -68,4 +68,15 @@ describe("invokeYtDlp", () => {
 
     expect(await realpath(result.stdout.trim())).toBe(await realpath(cwd));
   });
+
+  it("honours an explicit maxBuffer for stdout larger than the 1 MiB default", async () => {
+    // execFile's default maxBuffer is 1 MiB; a playlist listing can exceed
+    // that (D4 / smoke test #3645). Without the explicit override below,
+    // this would reject with ENOBUFS instead of resolving.
+    const binary = await script("head -c 1500000 /dev/zero | tr '\\0' 'a'");
+
+    const result = await invokeYtDlp(binary, [], { maxBuffer: 4 * 1024 * 1024 });
+
+    expect(result.stdout.length).toBe(1500000);
+  });
 });

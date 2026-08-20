@@ -1,0 +1,63 @@
+{
+  "_type": "playlist",
+  "id": "PL9omX6impEuMgDFCK_NleIB0sMzKs2boI",
+  "title": "LLM evaluation course",
+  "entries": [
+    {
+      "_type": "url",
+      "ie_key": "Youtube",
+      "id": "rHs0sP7b5fM",
+      "title": "Welcome to the LLM evaluation course",
+      "url": "https://www.youtube.com/watch?v=rHs0sP7b5fM",
+      "duration": 92
+    },
+    {
+      "_type": "url",
+      "ie_key": "Youtube",
+      "id": "B7fl6He1lxM",
+      "title": "What is an LLM-powered product?",
+      "url": "https://www.youtube.com/watch?v=B7fl6He1lxM",
+      "duration": 188
+    },
+    {
+      "_type": "url",
+      "ie_key": "Youtube",
+      "id": "32zkohJICgc",
+      "title": "LLM evaluation benchmarks",
+      "url": "https://www.youtube.com/watch?v=32zkohJICgc",
+      "duration": 187
+    },
+    {
+      "_type": "url",
+      "ie_key": "Youtube",
+      "id": "RIGU1hy3UR8",
+      "title": "How to evaluate an LLM application",
+      "url": "https://www.youtube.com/watch?v=RIGU1hy3UR8",
+      "duration": 360
+    },
+    {
+      "_type": "url",
+      "ie_key": "Youtube",
+      "id": "Do6KAkutKbc",
+      "title": "LLM evaluation datasets: test cases and synthetic data",
+      "url": "https://www.youtube.com/watch?v=Do6KAkutKbc",
+      "duration": 366
+    },
+    {
+      "_type": "url",
+      "ie_key": "Youtube",
+      "id": "zzzzzzzzzzz",
+      "title": "[Private video]",
+      "url": "https://www.youtube.com/watch?v=zzzzzzzzzzz",
+      "duration": null
+    },
+    {
+      "_type": "url",
+      "ie_key": "Youtube",
+      "id": "yyyyyyyyyyy",
+      "title": "[Deleted video]",
+      "url": "https://www.youtube.com/watch?v=yyyyyyyyyyy",
+      "duration": null
+    }
+  ]
+}
