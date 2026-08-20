@@ -111,6 +111,12 @@ export function createProgressRenderer(
   // The track announcement arrives before the captions phase even starts, but
   // it belongs on the captions done line — held here until that line prints.
   let pendingTrack: { readonly language: string; readonly captionKind: CaptionKind } | null = null;
+  // Set by `playlist:member-start`, cleared by `playlist:member-done`: every
+  // inner phase event borrows this prefix so a playlist run reads as "whose
+  // turn is it" without the phase events themselves knowing about playlists.
+  let memberPrefix: string | null = null;
+
+  const phaseLabel = (phase: ProgressPhase): string => `${memberPrefix ?? ""}${LABELS[phase]}`;
 
   const stopSpinner = (): void => {
     if (timer !== null) {
@@ -124,7 +130,7 @@ export function createProgressRenderer(
   };
 
   const doneLine = (phase: ProgressPhase, outcome: PhaseOutcome): string => {
-    const label = LABELS[phase];
+    const label = phaseLabel(phase);
     const check = isTTY ? paint(32, "✓") : "ok";
     switch (outcome) {
       case "fresh":
@@ -151,17 +157,17 @@ export function createProgressRenderer(
     switch (event.kind) {
       case "phase:start": {
         if (!isTTY) {
-          stream.write(`-> ${LABELS[event.phase]}\n`);
+          stream.write(`-> ${phaseLabel(event.phase)}\n`);
           return;
         }
         livePhase = event.phase;
         frame = 0;
-        stream.write(`${CLEAR_LINE}${paint(36, FRAMES[0])} ${LABELS[event.phase]}`);
+        stream.write(`${CLEAR_LINE}${paint(36, FRAMES[0])} ${phaseLabel(event.phase)}`);
         stopSpinner();
         timer = {
           handle: spinnerTimer.set(() => {
             frame = (frame + 1) % FRAMES.length;
-            stream.write(`${CLEAR_LINE}${paint(36, FRAMES[frame]!)} ${LABELS[event.phase]}`);
+            stream.write(`${CLEAR_LINE}${paint(36, FRAMES[frame]!)} ${phaseLabel(event.phase)}`);
           }, intervalMs),
         };
         return;
@@ -200,6 +206,29 @@ export function createProgressRenderer(
         writeLine(`Already extracted: ${paint(1, event.dirName)}`);
         return;
       }
+      case "playlist:identified": {
+        writeLine(`Playlist: ${event.title} — ${event.selectedCount}/${event.totalCount} member(s)`);
+        return;
+      }
+      case "playlist:member-start": {
+        const title = event.title ?? `position ${event.position}`;
+        memberPrefix = `[${event.index}/${event.total}] ${title}: `;
+        writeLine(`[${event.index}/${event.total}] ${title}`);
+        return;
+      }
+      case "playlist:member-done": {
+        const outcome = event.outcome === "extracted" ? "done" : event.outcome;
+        const detail = event.errorMessage !== null ? `: ${event.errorMessage}` : "";
+        writeLine(`${memberPrefix ?? ""}${outcome}${detail}`);
+        memberPrefix = null;
+        return;
+      }
+      case "playlist:summary": {
+        writeLine(
+          `Playlist finished: ${event.extracted} extracted, ${event.failed} failed, ${event.unavailable} unavailable`,
+        );
+        return;
+      }
     }
   };
 
@@ -217,7 +246,7 @@ export function createProgressRenderer(
       // In plain mode the trailing `->` line already names the failed phase;
       // repeating it would only push the actual error message further away.
       if (isTTY && livePhase !== null) {
-        stream.write(`${CLEAR_LINE}${paint(31, "✗")} ${LABELS[livePhase]}\n`);
+        stream.write(`${CLEAR_LINE}${paint(31, "✗")} ${phaseLabel(livePhase)}\n`);
       }
       livePhase = null;
     },

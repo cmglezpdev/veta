@@ -290,4 +290,7 @@ under `sdd/route-b-slice-6/handoff`.
 - [ ] Slice 6 — pipeline runner (resume orchestration, `--force` wiring)
 - [x] Prompt generation — `prompt.md` + Enter-to-copy clipboard delivery
 - [x] Progress UX — typed pipeline events + hand-rolled stderr renderer
+- [x] Playlist support — identify, list, orchestrate per-member extraction,
+      CLI auto-detect, `list`/`purge` grouping (see Engram `sdd/playlist-support`;
+      curation flags `--limit`/`--skip`/`--only`/`--skip-only` still to come)
 - [ ] Revisit prompt UX against real usage

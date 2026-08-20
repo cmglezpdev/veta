@@ -105,10 +105,35 @@ never anything else you keep in the folder.
 | `veta <url>` | Extract captions → normalized `transcript.md` |
 | `veta extract <url> [--lang <code>]` | Same, with an explicit preferred language (BCP-47) |
 | `veta extract <url> --force` | Re-extract from scratch, discarding prior progress |
+| `veta <playlist-url>` | Extract every playlist member (see [Playlists](#playlists)) |
 | `veta doctor` | Show which `yt-dlp` binary will be used |
-| `veta list` | List stored extractions and their status |
-| `veta purge` | Delete all stored extraction data (asks for confirmation) |
+| `veta list` | List stored extractions and their status, playlists with members grouped beneath |
+| `veta purge` | Delete all stored extraction data, playlists included (asks for confirmation) |
 | `veta completion` | Print a shell completion script (zsh/bash) |
+
+## Playlists
+
+A `youtube.com/playlist?list=...` URL runs every member through the same
+extraction as a single video — no separate command:
+
+```sh
+veta "https://www.youtube.com/playlist?list=PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+A `watch?v=...&list=...` URL still extracts just that one video; `list` is
+ignored, exactly like today.
+
+stdout prints exactly one line: the absolute path to the playlist's own
+`prompt.md`. It casts the AI assistant as an **orchestrator** — spawn one
+subagent per member video (each pointed at that member's own `prompt.md`),
+then write a `<playlist-slug>/README.md` guide that ties every video's notes
+together. Each member's notes land at `<playlist-slug>/NN-<video-slug>/`,
+`NN` being the member's original 1-based playlist position.
+
+A member that fails or is unavailable does not stop the run — the prompt
+notes what is missing, and stderr prefixes every per-member line with
+`[k/n] <title>`. If any member did not complete, veta still prints the prompt
+path first, then exits non-zero.
 
 ## Requirements
 
@@ -125,7 +150,8 @@ Point at a specific binary with `VETA_YTDLP_PATH` if needed.
 **Works today:** pick the right caption track, download via yt-dlp, normalize
 into chaptered Markdown with deep links, generate `prompt.md` with note-taking
 instructions (Enter to copy it to your clipboard), resume interrupted runs and
-re-run safely (`--force` to start over), ship as `@cmglezpdev/veta`.
+re-run safely (`--force` to start over), extract a whole playlist member by
+member (see [Playlists](#playlists)), ship as `@cmglezpdev/veta`.
 
 **Not yet:** progress UI, config persistence, or launching an AI agent. Those
 are next — see [docs/08-roadmap.md](docs/08-roadmap.md).
