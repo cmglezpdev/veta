@@ -31,7 +31,7 @@ A folder named from the video title, containing `transcript.md`:
 ```markdown
 # AI Replacing Developers Has Officially Failed
 
-*Sajjaad Khader · 14:48 · https://www.youtube.com/watch?v=Zdus-d4ehN0*
+_Sajjaad Khader · 14:48 · https://www.youtube.com/watch?v=Zdus-d4ehN0_
 
 ## 1. Why Big Tech’s AI Experiment Failed
 
@@ -44,7 +44,7 @@ trouble. For years, they bet that AI would replace …
 with AI in this tech market …
 ```
 
-That file is the product today. Hand it to Cursor, Claude Code, Obsidian, or
+That file is the product today. Hand it to Cursor, Obsidian, or
 whatever you already use — veta does not write the notes for you.
 
 Next to it, veta writes `prompt.md`: ready-made instructions for an AI
@@ -54,6 +54,11 @@ copy the prompt after printing the transcript path — press Enter to accept,
 anything else skips. Set `VETA_CLIPBOARD_CMD` to route the copy through a
 custom command (it receives the text on stdin) instead of the platform
 clipboard tool.
+
+veta also downloads the video's cover image as `cover.<ext>` at the package
+root; the prompt tells the assistant to copy it into the notes folder and
+embed it at the top of the notes README. If the download fails, the run
+continues without it.
 
 ## Quick path
 
@@ -92,6 +97,9 @@ Override the data directory with `VETA_DATA_DIR`:
 VETA_DATA_DIR=~/somewhere/else veta "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
+While it runs, veta reports each extraction step on stderr; stdout stays a
+single line — the path to the result — so it is safe to pipe or capture.
+
 Re-running the same video is safe: a finished extraction returns its existing
 `transcript.md` without touching the network, and an interrupted one resumes
 in the same package folder instead of starting over. Pass `--force` to discard
@@ -100,16 +108,17 @@ never anything else you keep in the folder.
 
 ## Commands
 
-| Command | What it does |
-|---|---|
-| `veta <url>` | Extract captions → normalized `transcript.md` |
-| `veta extract <url> [--lang <code>]` | Same, with an explicit preferred language (BCP-47) |
-| `veta extract <url> --force` | Re-extract from scratch, discarding prior progress |
-| `veta <playlist-url>` | Extract every playlist member (see [Playlists](#playlists)) |
-| `veta doctor` | Show which `yt-dlp` binary will be used |
-| `veta list` | List stored extractions and their status, playlists with members grouped beneath |
-| `veta purge` | Delete all stored extraction data, playlists included (asks for confirmation) |
-| `veta completion` | Print a shell completion script (zsh/bash) |
+| Command                              | What it does                                                                     |
+| ------------------------------------ | -------------------------------------------------------------------------------- |
+| `veta <url>`                         | Extract captions → normalized `transcript.md`                                    |
+| `veta extract <url> [--lang <code>]` | Same, with an explicit preferred language (BCP-47)                               |
+| `veta extract <url> --force`         | Re-extract from scratch, discarding prior progress                               |
+| `veta <playlist-url>`                | Extract every playlist member (see [Playlists](#playlists))                      |
+| `veta <playlist-url> --only 2,5-8`   | Extract a subset of members — also `--skip-only`, `--skip`, `--limit`            |
+| `veta doctor`                        | Show which `yt-dlp` binary will be used                                          |
+| `veta list`                          | List stored extractions and their status, playlists with members grouped beneath |
+| `veta purge`                         | Delete all stored extraction data, playlists included (asks for confirmation)    |
+| `veta completion`                    | Print a shell completion script (zsh/bash)                                       |
 
 ## Playlists
 
@@ -135,6 +144,26 @@ notes what is missing, and stderr prefixes every per-member line with
 `[k/n] <title>`. If any member did not complete, veta still prints the prompt
 path first, then exits non-zero.
 
+### Curating members
+
+Four flags narrow which members a run extracts. Every number refers to a
+member's **original 1-based playlist position** — curation never renumbers,
+so the `NN-` folder prefixes still index into the full playlist:
+
+```sh
+veta "<playlist-url>" --only 2,5-8       # just positions 2, 5, 6, 7, 8
+veta "<playlist-url>" --skip-only 1,9    # everything except positions 1 and 9
+veta "<playlist-url>" --skip 5 --limit 10  # like pagination: members 6–15
+```
+
+`--only` / `--skip-only` (mutually exclusive) filter by position first, then
+`--skip` drops members from the front, then `--limit` caps what is left. In
+`[k/n]`, `n` becomes the number of *selected* members and `k` counts through
+them, while each member's own `NN` stays its original position. A position
+past the end of the playlist matches nothing; a selection that matches no
+members at all fails before anything is extracted. On a single-video URL
+these flags are an error — they only mean something for playlists.
+
 ## Update notifications
 
 When a newer release is on npm, veta prints a small box on stderr after the
@@ -149,39 +178,31 @@ skipped automatically when `CI` is set.
 
 ## Requirements
 
-| Need | Why |
-|---|---|
-| Node.js ≥ 24 | Runtime floor for the published package |
-| `yt-dlp` on `PATH` (recommended) | Fetches metadata + captions; keep it updated yourself |
-| Captions on the video | No ASR fallback — if YouTube has no caption track, veta fails clearly |
+| Need                             | Why                                                                   |
+| -------------------------------- | --------------------------------------------------------------------- |
+| Node.js ≥ 24                     | Runtime floor for the published package                               |
+| `yt-dlp` on `PATH` (recommended) | Fetches metadata + captions; keep it updated yourself                 |
+| Captions on the video            | No ASR fallback — if YouTube has no caption track, veta fails clearly |
 
 Point at a specific binary with `VETA_YTDLP_PATH` if needed.
 
-## Status (v0.4)
-
-**Works today:** pick the right caption track, download via yt-dlp, normalize
-into chaptered Markdown with deep links, generate `prompt.md` with note-taking
-instructions (Enter to copy it to your clipboard), resume interrupted runs and
-re-run safely (`--force` to start over), extract a whole playlist member by
-member (see [Playlists](#playlists)), ship as `@cmglezpdev/veta`.
-
-**Not yet:** progress UI, config persistence, or launching an AI agent. Those
-are next — see [docs/08-roadmap.md](docs/08-roadmap.md).
+## Scope
 
 veta will never generate the notes itself. It extracts, cleans, and hands off.
+What ships next lives in [docs/08-roadmap.md](docs/08-roadmap.md).
 
 ## Learn how it works
 
 The `docs/` folder is the real teaching material — design decisions with
 evidence, not marketing:
 
-| Start here | |
-|---|---|
-| [Concepts](docs/01-concepts.md) | Subtitles ≠ transcripts; the five words you need |
-| [Architecture](docs/02-architecture.md) | Layers and the import rule |
-| [Normalization](docs/04-normalization.md) | 2,580 fragments → continuous text |
-| [Segmentation](docs/05-segmentation.md) | Where paragraphs break, and why |
-| [Roadmap](docs/08-roadmap.md) | What ships next |
+| Start here                                |                                                  |
+| ----------------------------------------- | ------------------------------------------------ |
+| [Concepts](docs/01-concepts.md)           | Subtitles ≠ transcripts; the five words you need |
+| [Architecture](docs/02-architecture.md)   | Layers and the import rule                       |
+| [Normalization](docs/04-normalization.md) | 2,580 fragments → continuous text                |
+| [Segmentation](docs/05-segmentation.md)   | Where paragraphs break, and why                  |
+| [Roadmap](docs/08-roadmap.md)             | What ships next                                  |
 
 Product intent lives in [`PRD.md`](PRD.md).
 

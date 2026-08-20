@@ -1,11 +1,20 @@
 # 8. Roadmap — where we are
 
-**Next action:** Slice 6 — the pipeline runner that actually resumes.
-Slice 5 (`StorePort`, run domain, `FsStore`, `extract` migration) is on `main`.
+**Current state:** `v0.10.0` is released; `main` additionally carries playlist
+support end to end (PRs [#40](https://github.com/cmglezpdev/veta/pull/40)–
+[#46](https://github.com/cmglezpdev/veta/pull/46)) and the update-available
+notice (PR [#39](https://github.com/cmglezpdev/veta/pull/39)), awaiting the
+next release. Every slice of the original plan has shipped: extraction,
+resume/`--force`, prompt generation, progress UX, `list`/`purge`, playlists.
 
-The release PR for `0.5.0` is open and deliberately unmerged: Slice 5 changed
-nothing a user can observe, so there is nothing to publish yet. It stays open
-and accumulates until Slice 6 makes resume real.
+**Next candidates** (nothing committed to yet):
+
+- ~~Playlist curation flags: `--limit` / `--skip` / `--only` / `--skip-only`.~~
+  **Done** — on `main`, awaiting release.
+- Revisit prompt UX against real usage.
+- Long-deferred polish: doctor polish, speaker-change paragraph breaks
+  (`isSpeakerChange`), tightening `assignChapters` vs `Chapter.endSec`.
+  Persistent config was dropped for good — veta takes flags/env per run.
 
 This file is the living plan. Engram keeps the same picture under
 `veta/roadmap`. Prefer this document when you need to reorient; Engram is
@@ -19,13 +28,17 @@ backup across sessions.
 2. ~~Slice 3: slug, exit-code map, minimal CLI → `transcript.md`.~~
 3. ~~Slice 4: CLI shell (`yargs`, completion, doctor).~~
 4. ~~Slice 5: StorePort, run domain, FsStore, `extract` on the port (catalog PR-6).~~
-5. **Now:** pipeline runner that actually resumes mid-run (catalog PR-8).
+5. ~~Slice 6: pipeline runner with real resume and `--force` (catalog PR-8).~~
 6. ~~Prompt generation + Enter-to-copy delivery.~~
 7. ~~Progress UX: typed pipeline events + hand-rolled stderr renderer.~~
+8. ~~Global `~/.veta` home, cover download, `list` / `purge`.~~
+9. ~~Playlist support: identify, orchestrate per-member, CLI auto-detect.~~
+10. ~~Playlist curation flags: `--limit` / `--skip` / `--only` / `--skip-only`.~~
+11. **Now:** pick from the next candidates above — the prompt-UX revisit.
 
 ---
 
-## Strategy in force: Route B (complete) → CLI shell → persistence
+## Strategy that got us here: Route B (complete) → CLI shell → persistence
 
 We abandoned following the original 12-PR checklist in order. Reality had
 drifted: normalization and tests landed ahead of ports/CLI, empty folders
@@ -45,14 +58,7 @@ doctor) **before** StorePort/resume so the command surface stabilizes first.
 | 3     | Minimal CLI: URL → package folder + `transcript.md`     | **Done** — PR [#8](https://github.com/cmglezpdev/veta/pull/8), on `main`                |
 | 4     | CLI shell: `yargs`, completion, doctor, `--lang`        | **Done** — PR [#10](https://github.com/cmglezpdev/veta/pull/10), on `main`              |
 | 5     | Persist run state; resume / safe reset primitives       | **Done** — PRs [#15](https://github.com/cmglezpdev/veta/pull/15)–[#18](https://github.com/cmglezpdev/veta/pull/18), on `main` |
-| 6     | Pipeline runner: real resume, `--force`                 | **Next** (catalog PR-8)                                                                 |
-
-
-**Still deferred** (after store + pipeline):
-
-- Config persistence and doctor polish
-- Speaker-change paragraph breaks (`isSpeakerChange`)
-- Tightening `assignChapters` vs `Chapter.endSec` (left undecided on purpose)
+| 6     | Pipeline runner: real resume, `--force`                 | **Done** — PRs [#22](https://github.com/cmglezpdev/veta/pull/22)–[#24](https://github.com/cmglezpdev/veta/pull/24), shipped in `v0.5.0` |
 
 **No longer deferred — prompt generation shipped.** `runExtraction` now builds
 `prompt.md` (pure `domain/prompt/build-prompt.ts`) beside `transcript.md` and
@@ -88,11 +94,17 @@ resume maps to **PR-8**.
 | `ExtractionSourcePort` + yt-dlp adapter                            | PR [#7](https://github.com/cmglezpdev/veta/pull/7)                                                  |
 | Minimal CLI: slug + exit codes + `veta <url>` → `transcript.md`    | PR [#8](https://github.com/cmglezpdev/veta/pull/8)                                                  |
 | CLI shell: `yargs`, completion, `doctor`, `--lang`                 | PR [#10](https://github.com/cmglezpdev/veta/pull/10)                                                |
+| Pipeline runner: per-step run state, resume, `--force`, raw reuse  | PRs [#22](https://github.com/cmglezpdev/veta/pull/22)–[#24](https://github.com/cmglezpdev/veta/pull/24), `v0.5.0` |
+| `prompt.md` generation + Enter-to-copy clipboard delivery          | PR [#26](https://github.com/cmglezpdev/veta/pull/26), `v0.6.0`                                      |
+| Global `~/.veta` home; notes built in the assistant's cwd          | PR [#29](https://github.com/cmglezpdev/veta/pull/29), `v0.7.0`                                      |
+| Cover download + key-takeaways prompt section                      | PRs [#31](https://github.com/cmglezpdev/veta/pull/31), [#32](https://github.com/cmglezpdev/veta/pull/32), `v0.8.0` |
+| Step-by-step extraction progress on stderr                         | PR [#34](https://github.com/cmglezpdev/veta/pull/34), `v0.9.0`                                      |
+| `veta purge` and `veta list`                                       | PRs [#36](https://github.com/cmglezpdev/veta/pull/36), [#37](https://github.com/cmglezpdev/veta/pull/37), `v0.10.0` |
+| Playlist support end to end; update-available notice               | PRs [#39](https://github.com/cmglezpdev/veta/pull/39)–[#46](https://github.com/cmglezpdev/veta/pull/46), on `main`, unreleased |
 
 
-Empty shells still on disk (no real implementation yet): `src/pipeline/` and
-`src/domain/prompt/`. `src/domain/config/` is gone for good — veta persists no
-config. Slice 5 fills `src/adapters/store/` and `src/domain/run/`.
+`src/domain/config/` is gone for good — veta persists no config; `dataDir`
+and language come from flags/env per invocation.
 
 ---
 
@@ -215,11 +227,14 @@ persists.
 
 
 
-## Slice 6 — next PR (detail)
+## Slice 6 — done (detail)
 
 **Outcome:** the thing Slice 5 was built for — a run that survives being
 interrupted. Re-running `veta <url>` after a failure picks up where it stopped
-instead of starting over.
+instead of starting over. Shipped as PRs
+[#22](https://github.com/cmglezpdev/veta/pull/22)–[#24](https://github.com/cmglezpdev/veta/pull/24)
+in `v0.5.0`. What follows is the plan as it stood before the slice landed,
+kept as history.
 
 Slice 5 left five store methods with no caller. This slice is what calls them.
 
@@ -287,10 +302,10 @@ under `sdd/route-b-slice-6/handoff`.
 - [x] Slice 3 — slug + exit codes + minimal `veta <url>`
 - [x] Slice 4 — CLI shell (`yargs`, completion, doctor, `--lang`)
 - [x] Slice 5 — `StorePort` + run/resume domain + `FsStore`
-- [ ] Slice 6 — pipeline runner (resume orchestration, `--force` wiring)
+- [x] Slice 6 — pipeline runner (resume orchestration, `--force` wiring)
 - [x] Prompt generation — `prompt.md` + Enter-to-copy clipboard delivery
 - [x] Progress UX — typed pipeline events + hand-rolled stderr renderer
 - [x] Playlist support — identify, list, orchestrate per-member extraction,
       CLI auto-detect, `list`/`purge` grouping (see Engram `sdd/playlist-support`;
-      curation flags `--limit`/`--skip`/`--only`/`--skip-only` still to come)
+      curation flags `--limit`/`--skip`/`--only`/`--skip-only` shipped too)
 - [ ] Revisit prompt UX against real usage

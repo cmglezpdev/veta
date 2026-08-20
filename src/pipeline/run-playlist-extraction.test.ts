@@ -7,6 +7,7 @@ import { FsStore } from "../adapters/store/fs-store.ts";
 import { resetBinaryCache } from "../adapters/ytdlp/binary.ts";
 import { YtDlpExtractionSource } from "../adapters/ytdlp/ytdlp-extraction-source.ts";
 import { YtDlpPlaylistSource } from "../adapters/ytdlp/ytdlp-playlist-source.ts";
+import { parseMemberSelection, type RawSelectionFlags } from "../domain/playlist/member-selection.ts";
 import type { ProgressEvent } from "./progress.ts";
 import { runPlaylistExtraction, type RunPlaylistExtractionOptions } from "./run-playlist-extraction.ts";
 
@@ -213,6 +214,91 @@ describe("runPlaylistExtraction", () => {
     const rejection = expect(run({ now: tickingClock() })).rejects;
     await (code !== null ? rejection.toMatchObject({ code }) : rejection.toThrow());
     expect((await readdir(dataDir).catch(() => [])).some((d) => d.startsWith("pl-"))).toBe(false);
+  });
+
+  describe("member curation", () => {
+    function selection(flags: RawSelectionFlags) {
+      const parsed = parseMemberSelection(flags);
+      if (parsed === null) throw new Error("test expected curation flags");
+      return parsed;
+    }
+
+    it("--only extracts just the named positions, keeping original NN- prefixes", async () => {
+      const store = new FsStore({ dataDir });
+
+      const result = await runPlaylistExtraction(
+        PLAYLIST_URL,
+        new YtDlpPlaylistSource(),
+        new YtDlpExtractionSource(),
+        store,
+        { now: tickingClock(), selection: selection({ only: "1,4" }) },
+      );
+
+      expect(result.outcomes.map((o) => [o.position, o.status])).toEqual([
+        [1, "extracted"],
+        [4, "extracted"],
+      ]);
+      // NN keeps the ORIGINAL playlist position — never the selection index.
+      expect(result.outcomes[1]?.notesFolder?.startsWith("04-")).toBe(true);
+      expect(result.failedCount).toBe(0);
+
+      // The record stores the selected members only, with original positions,
+      // while totalCount stays the pre-curation listing size.
+      const record = await store.findPlaylist("PLtestplaylist01");
+      expect(record?.totalCount).toBe(4);
+      expect(record?.members.map((m) => m.position)).toEqual([1, 4]);
+    });
+
+    it("--skip and --limit paginate the listing", async () => {
+      const result = await runPlaylistExtraction(
+        PLAYLIST_URL,
+        new YtDlpPlaylistSource(),
+        new YtDlpExtractionSource(),
+        new FsStore({ dataDir }),
+        { now: tickingClock(), selection: selection({ skip: 1, limit: 2 }) },
+      );
+
+      expect(result.outcomes.map((o) => o.position)).toEqual([2, 3]);
+    });
+
+    it("--skip-only drops the named positions and keeps the rest", async () => {
+      const result = await runPlaylistExtraction(
+        PLAYLIST_URL,
+        new YtDlpPlaylistSource(),
+        new YtDlpExtractionSource(),
+        new FsStore({ dataDir }),
+        { now: tickingClock(), selection: selection({ skipOnly: "2-3" }) },
+      );
+
+      expect(result.outcomes.map((o) => o.position)).toEqual([1, 4]);
+    });
+
+    it("counts [k/n] through the selection while positions stay original", async () => {
+      const { events, onProgress } = capture();
+
+      await run({ now: tickingClock(), onProgress, selection: selection({ only: "2,4" }) });
+
+      expect(events[0]).toEqual({
+        kind: "playlist:identified",
+        title: "Test Playlist",
+        totalCount: 4,
+        selectedCount: 2,
+      });
+      const starts = events.filter((e) => e.kind === "playlist:member-start");
+      expect(starts.map((e) => [(e as { index: number }).index, (e as { total: number }).total, (e as { position: number }).position])).toEqual([
+        [1, 2, 2],
+        [2, 2, 4],
+      ]);
+    });
+
+    it("throws PLAYLIST_EMPTY after listing when the selection matches nothing, extracting no member", async () => {
+      await expect(
+        run({ now: tickingClock(), selection: selection({ only: "50-60" }) }),
+      ).rejects.toMatchObject({ code: "PLAYLIST_EMPTY" });
+
+      // Listing happened, extraction never did: no package dir of any kind.
+      expect(await readdir(dataDir).catch(() => [])).toEqual([]);
+    });
   });
 
   it("narrates identification, every member's turn, and the final tally in order", async () => {

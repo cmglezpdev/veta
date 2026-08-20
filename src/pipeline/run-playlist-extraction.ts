@@ -1,5 +1,6 @@
 import path from "node:path";
 import { isVetaError, VetaError, type VetaErrorCode } from "../domain/errors/veta-error.ts";
+import { selectMembers, type MemberSelection } from "../domain/playlist/member-selection.ts";
 import { memberFolderName, positionWidth } from "../domain/playlist/position.ts";
 import { playlistDirName, playlistNotesDir } from "../domain/playlist/playlist-dir.ts";
 import { buildPlaylistPrompt, type PlaylistPromptMember } from "../domain/prompt/build-playlist-prompt.ts";
@@ -47,7 +48,10 @@ export type RunPlaylistResult = {
   readonly failedCount: number;
 };
 
-export type RunPlaylistExtractionOptions = Pick<RunExtractionOptions, "force" | "now" | "onProgress">;
+export type RunPlaylistExtractionOptions = Pick<RunExtractionOptions, "force" | "now" | "onProgress"> & {
+  /** Parsed curation flags; null or absent extracts every member. */
+  readonly selection?: MemberSelection | null;
+};
 
 function watchUrl(externalId: string): string {
   return `https://www.youtube.com/watch?v=${externalId}`;
@@ -85,16 +89,29 @@ export async function runPlaylistExtraction(
     throw new VetaError("PLAYLIST_EMPTY", "The playlist has no members.");
   }
 
+  // Curation cuts the list here, right after listing: everything downstream —
+  // the loop, the record, the prompt, the failure tally — sees only selected
+  // members. The `NN-` width stays derived from the FULL listing, because
+  // positions are original playlist positions and never renumber (D5, D9).
+  const selection = options.selection ?? null;
+  const selected = selection === null ? members : selectMembers(members, selection);
+  if (selected.length === 0) {
+    throw new VetaError(
+      "PLAYLIST_EMPTY",
+      `The selection matched none of the playlist's ${members.length} member(s).`,
+    );
+  }
+
   const dirName = playlistDirName(title, identity.playlistId);
   const notesDir = playlistNotesDir(title, identity.playlistId);
   const width = positionWidth(members.length);
-  const total = members.length;
+  const total = selected.length;
 
-  onProgress({ kind: "playlist:identified", title, totalCount: total, selectedCount: total });
+  onProgress({ kind: "playlist:identified", title, totalCount: members.length, selectedCount: total });
 
   const outcomes: MemberOutcome[] = [];
 
-  for (const [index, member] of members.entries()) {
+  for (const [index, member] of selected.entries()) {
     onProgress({
       kind: "playlist:member-start",
       index: index + 1,
@@ -129,7 +146,7 @@ export async function runPlaylistExtraction(
     playlistId: identity.playlistId,
     dirName,
     title,
-    totalCount: total,
+    totalCount: members.length,
     members: outcomes.map(toMemberRecord),
     createdAt: previous !== null ? previous.createdAt : timestamp,
     updatedAt: timestamp,

@@ -176,6 +176,48 @@ describe("run()", () => {
     ).resolves.toContain("Test Playlist");
   });
 
+  it("curates a playlist run with --only, extracting just the named positions", async () => {
+    await writePlaylistFixture("Test Playlist", [
+      playlistMember("1VqKUrxR2C8", "Playlist Member One"),
+      playlistMember("2WqKUrxR2C9", "Playlist Member Two"),
+    ]);
+
+    const code = await run(argv(PLAYLIST_URL, "--only", "1"));
+    expect(code).toBe(0);
+
+    const entries = await readdir(outputRoot, { withFileTypes: true });
+    const playlistDir = entries.find((entry) => entry.isDirectory() && entry.name.startsWith("pl-"));
+    expect(playlistDir).toBeDefined();
+    const prompt = await readFile(path.join(outputRoot, playlistDir!.name, "prompt.md"), "utf8");
+    expect(prompt).toContain("Playlist Member One");
+    expect(prompt).not.toContain("Playlist Member Two");
+  });
+
+  it("rejects curation flags on a single-video URL before extracting anything", async () => {
+    await expect(run(argv("1VqKUrxR2C8", "--limit", "2"))).rejects.toMatchObject({
+      code: "INPUT_UNRECOGNIZED",
+      message: expect.stringContaining("playlist"),
+    });
+
+    // Fail-fast means no package was created for the video.
+    expect(await readdir(outputRoot).catch(() => [])).toEqual([]);
+  });
+
+  it.each([
+    ["--limit 0", ["--limit", "0"]],
+    ["--skip -1", ["--skip", "-1"]],
+    ["a non-integer --limit", ["--limit", "1.5"]],
+    ["a malformed --only spec", ["--only", "5-3"]],
+    ["--only combined with --skip-only", ["--only", "1", "--skip-only", "2"]],
+  ])("rejects %s as INPUT_UNRECOGNIZED without any extraction", async (_label, flags) => {
+    await writePlaylistFixture("Test Playlist", [playlistMember("1VqKUrxR2C8", "Playlist Member")]);
+
+    await expect(run(argv(PLAYLIST_URL, ...flags))).rejects.toMatchObject({
+      code: "INPUT_UNRECOGNIZED",
+    });
+    expect(await readdir(outputRoot).catch(() => [])).toEqual([]);
+  });
+
   it("keeps a watch URL with a list param on the single-video path", async () => {
     const code = await run(
       argv("https://www.youtube.com/watch?v=1VqKUrxR2C8&list=PLtestplaylist03"),
