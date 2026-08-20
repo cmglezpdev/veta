@@ -1,4 +1,6 @@
+import type { PlaylistRecord } from "../domain/run/playlist-record.ts";
 import type { RunRecord, RunSummary } from "../domain/run/run-record.ts";
+import type { StoredRecord } from "../domain/run/stored-record.ts";
 import type { RawArtifact, WorkDir } from "./extraction-source.ts";
 
 /**
@@ -21,6 +23,20 @@ export interface StorePort {
    */
   listRunRecords(): Promise<readonly RunRecord[]>;
   rebuildIndex(): Promise<{ readonly recovered: number }>;
+  /**
+   * Find a stored playlist by its playlist id.
+   *
+   * Always a scan (D3): `index.json` stays video-only, so there is no catalog
+   * to consult first the way {@link findRun} does.
+   */
+  findPlaylist(playlistId: string): Promise<PlaylistRecord | null>;
+  /** Persist a playlist record. Never touches `index.json` (D3). */
+  savePlaylist(record: PlaylistRecord): Promise<void>;
+  /**
+   * Every stored package — video and playlist alike — newest first, straight
+   * from a disk scan. What `list` and `purge` use to see playlist dirs too.
+   */
+  listStoredRecords(): Promise<readonly StoredRecord[]>;
   openWorkDir(dirName: string): Promise<WorkDir>;
   renameWorkDir(dir: WorkDir, newDirName: string): Promise<WorkDir>;
   writeArtifact(

@@ -3,8 +3,10 @@ import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/p
 import path from "node:path";
 import { VetaError } from "../../domain/errors/veta-error.ts";
 import { asString, isRecord } from "../../domain/json.ts";
+import type { PlaylistRecord } from "../../domain/run/playlist-record.ts";
 import type { RunRecord, RunSummary } from "../../domain/run/run-record.ts";
-import { parseRunRecord, toRunSummary } from "../../domain/run/run-record.ts";
+import { toRunSummary } from "../../domain/run/run-record.ts";
+import { isPlaylistRecord, parseStoredRecord, type StoredRecord } from "../../domain/run/stored-record.ts";
 import { isValidDirName } from "../../domain/video/slug.ts";
 import { type WorkDir, asWorkDir } from "../../ports/extraction-source.ts";
 import type { RawArtifact } from "../../ports/extraction-source.ts";
@@ -105,15 +107,24 @@ export class FsStore implements StorePort {
       // The index claimed this run, so a state file from the future is refused
       // rather than skipped — see the class comment.
       const record = await this.#readState(hit.dirName, { strict: true });
-      if (record?.externalId === externalId) return record;
+      if (record !== null && !isPlaylistRecord(record) && record.externalId === externalId) {
+        return record;
+      }
     }
 
-    const scanned = await this.#scan();
+    const scanned = await this.#scanRuns();
     const found = scanned.find((record) => record.externalId === externalId) ?? null;
 
     if (found) await this.#writeIndex(scanned.map(toRunSummary));
 
     return found;
+  }
+
+  async findPlaylist(playlistId: string): Promise<PlaylistRecord | null> {
+    // Always a scan (D3): index.json stays video-only, so there is no
+    // catalog entry to consult first the way findRun's index hit does.
+    const scanned = await this.#scanPlaylists();
+    return scanned.find((record) => record.playlistId === playlistId) ?? null;
   }
 
   async saveRun(record: RunRecord): Promise<void> {
@@ -133,6 +144,18 @@ export class FsStore implements StorePort {
     await this.#writeIndex(merged);
   }
 
+  /**
+   * Persist a playlist record.
+   *
+   * `index.json` stays video-only (D3): a playlist is only ever found by
+   * scanning, so there is no index entry to write here.
+   */
+  async savePlaylist(record: PlaylistRecord): Promise<void> {
+    const dir = this.#packageDir(record.dirName);
+    await mkdir(dir, { recursive: true });
+    await writeJsonAtomic(path.join(dir, STATE_FILE), record);
+  }
+
   async listRuns(): Promise<readonly RunSummary[]> {
     const entries = await this.#loadEntries();
     return [...entries].sort(byNewestFirst);
@@ -141,11 +164,18 @@ export class FsStore implements StorePort {
   async listRunRecords(): Promise<readonly RunRecord[]> {
     // Always a scan, never the index: summaries carry no steps, and status
     // derivation needs the full records.
+    return [...(await this.#scanRuns())].sort(byNewestFirst);
+  }
+
+  /** Every stored package, video and playlist alike, newest first. */
+  async listStoredRecords(): Promise<readonly StoredRecord[]> {
     return [...(await this.#scan())].sort(byNewestFirst);
   }
 
   async rebuildIndex(): Promise<{ readonly recovered: number }> {
-    const scanned = await this.#scan();
+    // The index only ever tracks videos (D3), so playlists are excluded here
+    // exactly like every other #loadEntries/index-writing path.
+    const scanned = await this.#scanRuns();
     const summaries = scanned.map(toRunSummary);
 
     await this.#writeIndex(summaries);
@@ -254,7 +284,8 @@ export class FsStore implements StorePort {
 
   async purge(): Promise<{ readonly removed: number }> {
     // The scan, not the index, decides what dies: the index may be stale or
-    // torn, and purge must take exactly the packages the store recognizes.
+    // torn, and purge must take exactly the packages the store recognizes —
+    // playlist directories included, since index.json never tracked them (D3).
     const scanned = await this.#scan();
 
     for (const record of scanned) {
@@ -298,7 +329,7 @@ export class FsStore implements StorePort {
     const indexed = await this.#readIndexFile();
     if (indexed) return indexed;
 
-    return (await this.#scan()).map(toRunSummary);
+    return (await this.#scanRuns()).map(toRunSummary);
   }
 
   async #writeIndex(runs: readonly RunSummary[]): Promise<void> {
@@ -319,7 +350,7 @@ export class FsStore implements StorePort {
    * directory under `dataDir` is a candidate, it is just a directory that is not
    * ours.
    */
-  async #readState(dirName: string, options: { strict: boolean }): Promise<RunRecord | null> {
+  async #readState(dirName: string, options: { strict: boolean }): Promise<StoredRecord | null> {
     if (!isValidDirName(dirName)) return null;
 
     const file = resolveWithin(this.#dataDir, dirName, STATE_FILE);
@@ -327,7 +358,7 @@ export class FsStore implements StorePort {
     if (raw === null) return null;
 
     try {
-      return parseRunRecord(raw);
+      return parseStoredRecord(raw);
     } catch (error) {
       if (options.strict) throw error;
       return null;
@@ -335,14 +366,16 @@ export class FsStore implements StorePort {
   }
 
   /**
-   * Every package the data directory actually holds.
+   * Every package the data directory actually holds — video and playlist
+   * packages alike (`#scan` learned {@link parseStoredRecord} so `list` and
+   * `purge` see playlist dirs too).
    *
    * `dataDir` defaults to wherever the user ran veta, so the scan has to assume
    * most of what it sees is not veta's: it stays at the top level, and skips
    * anything without a parseable state file. Where a state file and the disk
    * disagree about `dirName`, the disk wins — it is what a rename left behind.
    */
-  async #scan(): Promise<readonly RunRecord[]> {
+  async #scan(): Promise<readonly StoredRecord[]> {
     let entries: Dirent[];
 
     try {
@@ -352,7 +385,7 @@ export class FsStore implements StorePort {
       throw error;
     }
 
-    const found: RunRecord[] = [];
+    const found: StoredRecord[] = [];
 
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
@@ -366,5 +399,15 @@ export class FsStore implements StorePort {
     }
 
     return found;
+  }
+
+  /** Only the video packages from a full scan — what the video-only index tracks (D3). */
+  async #scanRuns(): Promise<readonly RunRecord[]> {
+    return (await this.#scan()).filter((record): record is RunRecord => !isPlaylistRecord(record));
+  }
+
+  /** Only the playlist packages from a full scan. */
+  async #scanPlaylists(): Promise<readonly PlaylistRecord[]> {
+    return (await this.#scan()).filter(isPlaylistRecord);
   }
 }
