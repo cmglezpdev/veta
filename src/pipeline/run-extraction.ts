@@ -36,6 +36,13 @@ export type RunExtractionOptions = {
    * would leave the run silently half-observed.
    */
   readonly onProgress?: ProgressListener;
+  /**
+   * Overrides the notes folder name baked into `prompt.md`. Receives the
+   * resolved package `dirName`; defaults to identity. Lets a playlist run
+   * nest a member's notes under `<playlist>/NN-<slug>` without touching
+   * anything else about this run.
+   */
+  readonly packageName?: (dirName: string) => string;
 };
 
 export type RunExtractionResult = {
@@ -211,7 +218,7 @@ export async function runExtraction(
   onProgress({ kind: "phase:start", phase: "prompt" });
   const prompt = buildNotesPrompt(metadata, track.baseLanguage, {
     transcriptPath: path.join(workDir, artifact.relPath),
-    packageName: dirName,
+    packageName: (options.packageName ?? ((n) => n))(dirName),
     thumbnailPath: thumbnail !== null ? path.join(workDir, thumbnail.file.relPath) : null,
   });
   const promptArtifact = await store.writeArtifact(workDir, PROMPT_FILE, prompt);
