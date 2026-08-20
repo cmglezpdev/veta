@@ -39,6 +39,38 @@ export type ProgressEvent =
   /** A previous unfinished record was found and is being continued. */
   | { readonly kind: "run:resumed"; readonly dirName: string }
   /** A finished run answered entirely from disk; no phase beyond identify ran. */
-  | { readonly kind: "run:answered-from-disk"; readonly dirName: string };
+  | { readonly kind: "run:answered-from-disk"; readonly dirName: string }
+  /** Listing finished: how many members this run will walk through. */
+  | {
+      readonly kind: "playlist:identified";
+      readonly title: string;
+      readonly totalCount: number;
+      readonly selectedCount: number;
+    }
+  /** A member's turn started. `index`/`total` drive the renderer's `[k/n] ` prefix. */
+  | {
+      readonly kind: "playlist:member-start";
+      readonly index: number;
+      readonly total: number;
+      readonly position: number;
+      readonly externalId: string | null;
+      readonly title: string | null;
+    }
+  /** A member's turn finished, however it went. */
+  | {
+      readonly kind: "playlist:member-done";
+      readonly index: number;
+      readonly total: number;
+      readonly outcome: "extracted" | "unavailable" | "failed";
+      readonly dirName: string | null;
+      readonly errorMessage: string | null;
+    }
+  /** The whole loop finished; final tallies for the CLI's summary line. */
+  | {
+      readonly kind: "playlist:summary";
+      readonly extracted: number;
+      readonly failed: number;
+      readonly unavailable: number;
+    };
 
 export type ProgressListener = (event: ProgressEvent) => void;
