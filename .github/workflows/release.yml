@@ -50,11 +50,6 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - run: pnpm install --frozen-lockfile
-        env:
-          # Same reason as in ci.yml, and it matters more here: an anonymous
-          # rate limit on an unrelated binary download must never be what
-          # fails a publish. The binary is not part of the published package.
-          YOUTUBE_DL_SKIP_DOWNLOAD: "true"
 
       # A failing suite blocks the release (PRD 11.4).
       - run: pnpm typecheck

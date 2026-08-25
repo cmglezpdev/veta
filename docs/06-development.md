@@ -114,70 +114,45 @@ build.
 
 ## The yt-dlp binary
 
-veta shells out to a `yt-dlp` binary. Three sources are tried in order:
+veta shells out to a `yt-dlp` binary that it never ships. Two sources are
+tried in order:
 
-1. An explicit path from config or the `VETA_YTDLP_PATH` environment variable
+1. An explicit path from `VETA_YTDLP_PATH` (or an `explicitPath` passed to
+   `resolveYtDlpBinary`)
 2. `yt-dlp` on `PATH`
-3. A copy bundled by the `youtube-dl-exec` dependency
 
-### The pnpm complication
+If neither resolves, `YTDLP_NOT_FOUND` names the two installs that work —
+`brew install yt-dlp`, `pipx install yt-dlp` — and the environment variable.
+The resolution result is cached for the process on first success.
 
-`youtube-dl-exec` downloads the binary in a postinstall script. **pnpm 10 and
-later skip dependency build scripts by default**, so a plain `pnpm add`
-leaves no binary at all — not a stale one, none.
+### Why the binary is not bundled
 
-For this repository the approval lives in `pnpm-workspace.yaml`:
+Until 0.10.0 veta declared `youtube-dl-exec` as a dependency it never
+imported, purely so that package's `postinstall` would drop a `yt-dlp` copy
+that `binary.ts` used as a third source. That was removed, and the reasons
+are worth keeping:
 
-```yaml
-allowBuilds:
-  youtube-dl-exec: true
-```
+- **Unpinned and unverified.** The script fetched whatever
+  `releases/latest` served on install day, with no version pin and no
+  checksum. Every user ran a different, unauditable binary.
+- **Install-time network dependency.** `npm install -g @cmglezpdev/veta`
+  failed outright when the GitHub API was unreachable or rate-limited. Both
+  CI workflows had to set `YOUTUBE_DL_SKIP_DOWNLOAD` to survive the
+  60-requests-per-hour anonymous limit on shared runner egress.
+- **Python, twice.** Its `preinstall` refused to install without Python
+  >= 3.9, and the asset it dropped was a Python zipapp, so the bundled copy
+  needed a Python interpreter at run time too.
+- **Weight.** Around 40 of veta's roughly 55 production packages existed to
+  support that postinstall.
+- **Install scripts are on their way out.** npm now warns that the package
+  has `install scripts not yet covered by allowScripts`, and a package
+  cannot approve scripts on a consumer's behalf — only the installing
+  project's own `package.json` counts. The warning was going to reach every
+  user of veta, and eventually become a block.
 
-> The original design specified `pnpm.onlyBuiltDependencies` in
-> `package.json`. **pnpm 11 no longer reads that key** and warns that it is
-> ignored; the setting moved to `pnpm-workspace.yaml`.
-
-### CI skips the download entirely
-
-That postinstall fetches the binary from the GitHub releases API
-**unauthenticated**. Hosted runners share egress IPs, so the call hits the
-60-requests-per-hour anonymous limit and the install fails outright — which
-is exactly what happened on macOS the first time this workflow ran, while
-ubuntu passed. A flake, not a bug in our code, and one that would recur at
-random.
-
-Both workflows therefore set `YOUTUBE_DL_SKIP_DOWNLOAD`. CI never invokes
-yt-dlp — every test reads committed fixtures — so the fix removes the network
-dependency rather than authenticating it. Passing a `GITHUB_TOKEN` would also
-have worked, and was rejected: it makes an unnecessary download more reliable
-instead of not doing it.
-
-It matters most in `release.yml`, where an anonymous rate limit on an
-unrelated binary must never be what fails a publish.
-
-### The rest of the story
-
-This fixes local development and CI. It does **not** propagate to a user
-running `pnpm add -g @cmglezpdev/veta`, and there is no package-side fix for
-that. The recommended install story is therefore to install yt-dlp
-independently — `brew install yt-dlp` or `pipx install yt-dlp` — which also
-keeps it current. The bundled copy is a fallback, not the primary path.
-
-### The package is never imported
-
-`youtube-dl-exec` appears in `dependencies` **solely so its postinstall
-runs**. No TypeScript file imports it. The bundled binary's path is computed
-from the package's own location instead:
-
-```ts
-const pkgJson = require.resolve("youtube-dl-exec/package.json");
-```
-
-The reason is concrete: the package's `constants` export exists at runtime
-but is absent from its type definitions, so importing it fails
-`tsc --noEmit`. Declaring the missing type would convert a compile error into
-a runtime one. Computing the path needs no types from the package at all, and
-its failure mode — the file is not there — is one we already have to handle.
+The install story is therefore the one the README already led with: install
+yt-dlp yourself, which also keeps it current — and staying current matters,
+because yt-dlp breaks and gets fixed on YouTube's schedule, not veta's.
 
 ## Test fixtures
 

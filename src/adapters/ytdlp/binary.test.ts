@@ -45,6 +45,25 @@ describe("resolveYtDlpBinary", () => {
     expect(resolved).toMatchObject({ path: explicit, source: "config", version: "explicit" });
   });
 
+  it("falls back to yt-dlp on PATH when nothing is configured", async () => {
+    const binary = await fakeBinary("from-path");
+
+    await expect(
+      resolveYtDlpBinary({ env: { PATH: path.dirname(binary) } }),
+    ).resolves.toMatchObject({ source: "path", version: "from-path" });
+  });
+
+  it("falls back to PATH when the configured path is not usable", async () => {
+    const binary = await fakeBinary("from-path");
+
+    await expect(
+      resolveYtDlpBinary({
+        explicitPath: path.join(tmpdir(), "definitely-missing-veta-ytdlp"),
+        env: { PATH: path.dirname(binary) },
+      }),
+    ).resolves.toMatchObject({ source: "path", version: "from-path" });
+  });
+
   it("caches the first successful resolution for the process", async () => {
     const first = await fakeBinary("first");
     const second = await fakeBinary("second");
@@ -64,7 +83,7 @@ describe("resolveYtDlpBinary", () => {
       }),
     ).rejects.toMatchObject({
       code: "YTDLP_NOT_FOUND",
-      message: expect.stringMatching(/pnpm.*ytDlpPath/i),
+      message: expect.stringMatching(/brew install yt-dlp.*VETA_YTDLP_PATH/is),
     });
   });
 });
