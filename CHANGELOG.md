@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.11.0](https://github.com/cmglezpdev/veta/compare/veta-v0.10.0...veta-v0.11.0) (2026-08-20)
+
+
+### Features
+
+* **cli:** extract playlists end to end from the command line ([#46](https://github.com/cmglezpdev/veta/issues/46)) ([1c569a1](https://github.com/cmglezpdev/veta/commit/1c569a1df47625ceb997bafe9815bb9e9328b542))
+* **cli:** show an update-available notice after every command ([#39](https://github.com/cmglezpdev/veta/issues/39)) ([709ff25](https://github.com/cmglezpdev/veta/commit/709ff25db7d93603ad5a689be47c9531c56afe6a))
+* **pipeline:** allow overriding the notes package name per run ([#43](https://github.com/cmglezpdev/veta/issues/43)) ([31405fb](https://github.com/cmglezpdev/veta/commit/31405fbe99de955a3134ca8bff5354dd51a91e55))
+* **playlist:** curate members with --limit, --skip, --only, and --skip-only ([#49](https://github.com/cmglezpdev/veta/issues/49)) ([6be9b61](https://github.com/cmglezpdev/veta/commit/6be9b61549defe8ed7bd2d57d302374026c5ff2d))
+* **playlist:** identify playlists and list members via yt-dlp ([#41](https://github.com/cmglezpdev/veta/issues/41)) ([b40eaa9](https://github.com/cmglezpdev/veta/commit/b40eaa9e50e8ec5498c8d577ff89a9025e406d53))
+* **playlist:** orchestrate per-video extraction for playlists ([#45](https://github.com/cmglezpdev/veta/issues/45)) ([6f7ba69](https://github.com/cmglezpdev/veta/commit/6f7ba691f3c160f28a01f1b8e1f6ec830b22fdb2))
+* **playlist:** persist playlist records in the flat store ([#42](https://github.com/cmglezpdev/veta/issues/42)) ([a50d583](https://github.com/cmglezpdev/veta/commit/a50d583dae91250b6fe8b18233023a6310d1514d))
+* **prompt:** build the playlist orchestrator prompt ([#44](https://github.com/cmglezpdev/veta/issues/44)) ([616ba4c](https://github.com/cmglezpdev/veta/commit/616ba4c9ae8fc0dd3af6099bbed3ad2a4e034514))
+
 ## [0.10.0](https://github.com/cmglezpdev/veta/compare/veta-v0.9.0...veta-v0.10.0) (2026-08-11)
 
 
