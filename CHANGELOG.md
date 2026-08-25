@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.12.0](https://github.com/cmglezpdev/veta/compare/veta-v0.11.0...veta-v0.12.0) (2026-08-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ytdlp:** veta no longer ships or downloads a yt-dlp binary. Users without yt-dlp on PATH must install it (brew install yt-dlp, pipx install yt-dlp) or set VETA_YTDLP_PATH.
+
+### Features
+
+* **ytdlp:** drop the bundled yt-dlp download, resolve from PATH ([#50](https://github.com/cmglezpdev/veta/issues/50)) ([13dce4c](https://github.com/cmglezpdev/veta/commit/13dce4c45af5e35569b40034410530e2cd61d7eb))
+
 ## [0.11.0](https://github.com/cmglezpdev/veta/compare/veta-v0.10.0...veta-v0.11.0) (2026-08-20)
 
 
