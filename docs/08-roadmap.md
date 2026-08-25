@@ -120,7 +120,7 @@ fake executable on `VETA_YTDLP_PATH` (zero `vi.mock`). On `main` via PR #7.
 | Piece                                       | Responsibility                                    |
 | ------------------------------------------- | ------------------------------------------------- |
 | `ports/extraction-source.ts`                | Port interface (domain types only)                |
-| `adapters/ytdlp/binary.ts`                  | PATH-then-bundled resolution; config/env override |
+| `adapters/ytdlp/binary.ts`                  | Config/env-then-`PATH` resolution, cached         |
 | `adapters/ytdlp/diagnose.ts`                | Map exit code + stderr → `VetaError` (pure)       |
 | `adapters/ytdlp/invoke.ts`                  | Spawn with `--ignore-config`; wire diagnose       |
 | `adapters/ytdlp/ytdlp-extraction-source.ts` | Port implementation                               |

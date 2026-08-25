@@ -1,15 +1,12 @@
 import { execFile } from "node:child_process";
 import { constants } from "node:fs";
 import { access } from "node:fs/promises";
-import { createRequire } from "node:module";
-import path from "node:path";
 import { promisify } from "node:util";
 import { VetaError } from "../../domain/errors/veta-error.ts";
 
 const execFileAsync = promisify(execFile);
-const require = createRequire(import.meta.url);
 
-export type BinarySource = "config" | "path" | "bundled";
+export type BinarySource = "config" | "path";
 
 export type ResolvedBinary = {
   readonly path: string;
@@ -39,16 +36,6 @@ async function probe(
   }
 }
 
-function bundledPath(): string | null {
-  try {
-    const packageJson = require.resolve("youtube-dl-exec/package.json");
-    const name = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
-    return path.join(path.dirname(packageJson), "bin", name);
-  } catch {
-    return null;
-  }
-}
-
 async function resolveUncached(options: ResolveBinaryOptions): Promise<ResolvedBinary> {
   const env = options.env ?? process.env;
   const configuredPath = options.explicitPath ?? env["VETA_YTDLP_PATH"];
@@ -61,15 +48,9 @@ async function resolveUncached(options: ResolveBinaryOptions): Promise<ResolvedB
   const fromPath = await probe("yt-dlp", "path", env);
   if (fromPath !== null) return fromPath;
 
-  const bundled = bundledPath();
-  if (bundled !== null) {
-    const resolved = await probe(bundled, "bundled", env);
-    if (resolved !== null) return resolved;
-  }
-
   throw new VetaError(
     "YTDLP_NOT_FOUND",
-    "No usable yt-dlp binary was found. Reinstall with pnpm so install scripts can download it, or configure ytDlpPath (VETA_YTDLP_PATH) to an executable.",
+    "No usable yt-dlp binary was found. Install it with `brew install yt-dlp` or `pipx install yt-dlp`, or point VETA_YTDLP_PATH at an existing executable.",
   );
 }
 

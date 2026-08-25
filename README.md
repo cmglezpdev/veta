@@ -181,7 +181,7 @@ skipped automatically when `CI` is set.
 | Need                             | Why                                                                   |
 | -------------------------------- | --------------------------------------------------------------------- |
 | Node.js ≥ 24                     | Runtime floor for the published package                               |
-| `yt-dlp` on `PATH` (recommended) | Fetches metadata + captions; keep it updated yourself                 |
+| `yt-dlp` on `PATH`               | Fetches metadata + captions; veta never bundles or downloads it        |
 | Captions on the video            | No ASR fallback — if YouTube has no caption track, veta fails clearly |
 
 Point at a specific binary with `VETA_YTDLP_PATH` if needed.

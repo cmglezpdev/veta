@@ -39,16 +39,6 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
-        env:
-          # youtube-dl-exec's postinstall downloads a yt-dlp binary from the
-          # GitHub releases API, unauthenticated. Hosted runners share egress
-          # IPs, so that call hits the 60/hour anonymous rate limit and the
-          # install dies — it took out macOS on the first run of this workflow.
-          #
-          # CI never invokes yt-dlp: every test reads committed fixtures. So
-          # the download is skipped rather than authenticated, which removes
-          # the network dependency instead of making it more reliable.
-          YOUTUBE_DL_SKIP_DOWNLOAD: "true"
 
       # Node and Vitest strip types without checking them, so this is a
       # separate mandatory gate rather than a side effect of the test run.
